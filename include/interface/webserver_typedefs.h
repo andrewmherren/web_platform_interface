@@ -2,7 +2,7 @@
 #define WEB_PLATFORM_INTERFACE_WEBSERVER_TYPEDEFS_H
 
 #include <Arduino.h>
-#ifdef ARDUINO
+#ifndef NATIVE_PLATFORM
 #include <WebServer.h>
 // Define WebServerClass as a concrete class derived from WebServer
 class WebServerClass : public WebServer {

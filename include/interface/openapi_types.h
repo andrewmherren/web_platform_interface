@@ -2,6 +2,7 @@
 #define OPENAPI_TYPES_H
 
 #include <Arduino.h>
+#include <interface/string_compat.h>
 #include <type_traits>
 #include <vector>
 
@@ -99,11 +100,15 @@ public:
 
   // Check if any documentation is provided
   bool hasDocumentation() const {
-    return !summary.isEmpty() || !description.isEmpty() ||
-           !operationId.isEmpty() || !tags.empty() ||
-           !requestExample.isEmpty() || !responseExample.isEmpty() ||
-           !requestSchema.isEmpty() || !responseSchema.isEmpty() ||
-           !parameters.isEmpty() || !responsesJson.isEmpty();
+    return !StringUtils::isStringEmpty(summary) ||
+           !StringUtils::isStringEmpty(description) ||
+           !StringUtils::isStringEmpty(operationId) || !tags.empty() ||
+           !StringUtils::isStringEmpty(requestExample) ||
+           !StringUtils::isStringEmpty(responseExample) ||
+           !StringUtils::isStringEmpty(requestSchema) ||
+           !StringUtils::isStringEmpty(responseSchema) ||
+           !StringUtils::isStringEmpty(parameters) ||
+           !StringUtils::isStringEmpty(responsesJson);
   }
 
   // Helper to get tags as comma-separated string

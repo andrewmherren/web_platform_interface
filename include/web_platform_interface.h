@@ -1,12 +1,18 @@
 #ifndef WEB_PLATFORM_INTERFACE_H
 #define WEB_PLATFORM_INTERFACE_H
 
+// Main include file for web_platform_interface library
+// This provides all the core interfaces needed by modules
+
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include <functional>
 #include <interface/auth_types.h>
 #include <interface/openapi_factory.h>
 #include <interface/openapi_types.h>
+#include <interface/unified_types.h>
 #include <interface/utils/route_variant.h>
+#include <interface/web_module_interface.h>
 #include <interface/web_module_types.h>
 #include <interface/web_request.h>
 #include <interface/web_response.h>
@@ -70,7 +76,28 @@ public:
                           std::function<void(JsonArray &)> builder) = 0;
 };
 
-// IWebPlatformProvider is defined in unified_types.h
-#include <interface/unified_types.h>
+/**
+ * Platform provider interface for dependency injection.
+ * Modules request a platform instance through this interface.
+ */
+class IWebPlatformProvider {
+public:
+  virtual ~IWebPlatformProvider() = default;
+  virtual IWebPlatform &getPlatform() = 0;
+
+  // Static instance for global access
+  static IWebPlatformProvider *instance;
+  static IWebPlatform &getPlatformInstance() {
+    if (!instance) {
+      // This should never happen in production - platform must be set
+      // Use runtime error instead of static_assert for better testing
+      // compatibility
+      Serial.println("FATAL: WebPlatform provider not initialized");
+      while (1)
+        ; // Halt execution
+    }
+    return instance->getPlatform();
+  }
+};
 
 #endif // WEB_PLATFORM_INTERFACE_H

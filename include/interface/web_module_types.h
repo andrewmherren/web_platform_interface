@@ -1,7 +1,15 @@
 #ifndef WEB_MODULE_TYPES_H
 #define WEB_MODULE_TYPES_H
 
+#include <Arduino.h>
+
+// Only include real WebServer.h in ESP environments
+#ifndef NATIVE_PLATFORM
 #include <WebServer.h>
+#else
+// Mock HTTP method enum for native testing
+enum HTTPMethod { HTTP_GET, HTTP_POST, HTTP_PUT, HTTP_PATCH, HTTP_DELETE };
+#endif
 
 // Use a completely different namespace to avoid conflicts with ESP32 built-in
 // HTTP enums

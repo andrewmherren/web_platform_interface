@@ -1,14 +1,18 @@
 {
   "name": "web_platform_interface",
   "version": "0.1.0",
-  "description": "Interface library for the Web Platform ecosystem",
-  "build": {
-    "includeDir": "include"
-  },
+  "description": "Shared interface and testing mocks for Web Platform modules",
   "keywords": [
-    "esp32",
-    "web"
+    "interface",
+    "testing",
+    "esp32"
   ],
+  "build": {
+    "includeDir": "include",
+    "srcFilter": [
+      "+<src/*>"
+    ]
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/andrewmherren/web_platform_interface.git"
@@ -22,7 +26,8 @@
   "license": "MIT",
   "homepage": "https://github.com/andrewmherren",
   "frameworks": [
-    "arduino"
+    "arduino",
+    "native"
   ],
   "platforms": [
     "espressif32"

@@ -2,6 +2,7 @@
 #define AUTH_TYPES_H
 
 #include <Arduino.h>
+#include <interface/string_compat.h>
 #include <vector>
 
 /**
@@ -47,12 +48,12 @@ struct AuthContext {
   // Helper methods
   bool hasValidSession() const {
     return isAuthenticated && authenticatedVia == AuthType::SESSION &&
-           !sessionId.isEmpty();
+           !StringUtils::isStringEmpty(sessionId);
   }
 
   bool hasValidToken() const {
     return isAuthenticated && authenticatedVia == AuthType::TOKEN &&
-           !token.isEmpty();
+           !StringUtils::isStringEmpty(token);
   }
 
   void clear() {

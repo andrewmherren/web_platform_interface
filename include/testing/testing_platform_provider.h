@@ -2,10 +2,11 @@
 #define TESTING_PLATFORM_PROVIDER_H
 
 #include "mock_web_platform.h"
-#include <interface/web_platform_interface.h>
 #include <memory>
 #include <utility>
 #include <vector>
+#include <web_platform_interface.h> // Full interface now in main header
+
 
 /**
  * Single canonical mock platform
@@ -76,31 +77,32 @@ public:
                          const String &toPath) override {
     // Mock implementation
   }
-  
+
   void createJsonResponse(WebResponse &res,
-                         std::function<void(JsonObject &)> builder) override {
+                          std::function<void(JsonObject &)> builder) override {
     // Create a document and call the builder
     StaticJsonDocument<512> doc;
     JsonObject root = doc.to<JsonObject>();
     builder(root);
-    
+
     // Serialize to string
     std::string jsonString = StringCompat::serializeJsonToStdString(doc);
-    
+
     // Set content
     res.setContent(toArduinoString(jsonString), "application/json");
   }
-  
-  void createJsonArrayResponse(WebResponse &res,
-                              std::function<void(JsonArray &)> builder) override {
+
+  void
+  createJsonArrayResponse(WebResponse &res,
+                          std::function<void(JsonArray &)> builder) override {
     // Create a document and call the builder
     StaticJsonDocument<512> doc;
     JsonArray root = doc.to<JsonArray>();
     builder(root);
-    
+
     // Serialize to string
     std::string jsonString = StringCompat::serializeJsonToStdString(doc);
-    
+
     // Set content
     res.setContent(toArduinoString(jsonString), "application/json");
   }

@@ -2,6 +2,11 @@
 #define MOCK_WEB_PLATFORM_H
 
 // Use ArduinoFake for Arduino compatibility
+#ifndef NATIVE_PLATFORM
+#define NATIVE_PLATFORM 1 // Ensure NATIVE_PLATFORM is defined for testing
+#endif
+
+#include "arduino_string_compat.h"
 #include <ArduinoFake.h>
 #include <ArduinoJson.h>
 #include <functional>
@@ -11,14 +16,14 @@
 #include <vector>
 
 // Use interfaces instead of mocks
+#include <interface/auth_types.h>
+#include <interface/openapi_types.h>
+// Note: platform interface is now in main web_platform_interface.h
+#include <interface/utils/route_variant.h>
 #include <interface/web_module_interface.h>
-#include <interface/web_platform_interface.h>
 #include <interface/web_module_types.h>
 #include <interface/web_request.h>
 #include <interface/web_response.h>
-#include <interface/auth_types.h>
-#include <interface/openapi_types.h>
-#include <interface/utils/route_variant.h>
 
 // Include string compatibility helpers
 #include "utils/string_compat.h"
@@ -45,76 +50,62 @@ public:
   }
 };
 
-// Enhanced OpenAPIFactory
-class OpenAPIFactory {
-public:
-  static OpenAPIDocumentation create(const String &summary,
-                                     const String &description,
-                                     const String &operationId,
-                                     const std::vector<String> &tags) {
-    OpenAPIDocumentation doc;
-    doc.summary = summary;
-    doc.description = description;
-    doc.operationId = operationId;
-    doc.tags = tags;
-    return doc;
-  }
+// Note: OpenAPIFactory is provided by openapi_factory.h
 
-  static String createSuccessResponse(const String &description) {
-    // Fixed string concatenation issue
-    String result = "{\"type\":\"object\",\"description\":\"";
-    result += description;
-    result += "\"}";
-    return result;
-  }
-};
-
-// Mock request/response classes for testing
-class MockWebRequest : public WebRequest {
+// Mock request/response classes for testing - simplified without inheritance
+class MockWebRequest {
 private:
   std::map<std::string, std::string> params;
   std::string body;
   AuthContext authCtx;
 
 public:
-  MockWebRequest() : authCtx(false, "") {}
+  MockWebRequest() {}
 
   void setParam(const std::string &name, const std::string &value) {
     params[name] = value;
   }
 
   void setBody(const std::string &b) { body = b; }
-  void setAuthContext(const AuthContext &ctx) { authCtx = ctx; }
 
-  String getParam(const String &name) override {
+  void setAuthContext(bool authenticated, const String &user = "") {
+    authCtx.isAuthenticated = authenticated;
+    authCtx.username = user;
+    if (authenticated) {
+      authCtx.authenticatedVia = AuthType::SESSION;
+      authCtx.sessionId = "test_session";
+    }
+  }
+
+  String getParam(const String &name) {
     std::string stdName = name.c_str();
     return params.count(stdName) ? String(params[stdName].c_str()) : String("");
   }
 
-  String getBody() override { return String(body.c_str()); }
-  const AuthContext &getAuthContext() const override { return authCtx; }
+  String getBody() { return String(body.c_str()); }
+  const AuthContext &getAuthContext() const { return authCtx; }
 };
 
-class MockWebResponse : public WebResponse {
+class MockWebResponse {
 public:
   String content;
   String contentType;
   int statusCode = 200;
   std::map<std::string, std::string> headers;
 
-  void setContent(const String &c, const String &ct) override {
+  void setContent(const String &c, const String &ct) {
     content = c;
     contentType = ct;
   }
 
-  void setProgmemContent(const char *c, const String &ct) override {
+  void setProgmemContent(const char *c, const String &ct) {
     content = String(c); // In mock, just convert to String
     contentType = ct;
   }
 
-  void setStatus(int code) override { statusCode = code; }
+  void setStatus(int code) { statusCode = code; }
 
-  void setHeader(const String &name, const String &value) override {
+  void setHeader(const String &name, const String &value) {
     headers[std::string(name.c_str())] = std::string(value.c_str());
   }
 };
