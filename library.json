@@ -7,12 +7,9 @@
     "testing",
     "esp32"
   ],
-  "build": {
-    "includeDir": "include",
-    "srcFilter": [
-      "+<src/*>"
-    ]
-  },
+  "headers": [
+    "include/web_platform_interface.h"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/andrewmherren/web_platform_interface.git"
@@ -25,10 +22,7 @@
   ],
   "license": "MIT",
   "homepage": "https://github.com/andrewmherren",
-  "frameworks": [
-    "arduino",
-    "native"
-  ],
+  "frameworks": "*",
   "platforms": [
     "espressif32"
   ],
