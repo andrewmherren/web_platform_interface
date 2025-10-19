@@ -1,8 +1,11 @@
 #include "test_web_response.h"
+#include <ArduinoFake.h>
 #include <ArduinoJson.h>
 #include <interface/string_compat.h>
 #include <interface/web_response.h>
 #include <unity.h>
+
+using namespace fakeit;
 
 // Test WebResponse default constructor initialization
 void test_web_response_constructor() {
@@ -185,17 +188,26 @@ void test_web_response_send_to() {
   TEST_ASSERT_EQUAL_STRING("text/plain", response.getMimeType().c_str());
 }
 
-// Test detailed sendTo method - covers lines 65-66 in web_response_native.cpp
+// Test detailed sendTo method - covers lines 63-66 in web_response_native.cpp
 void test_web_response_send_to_detailed() {
-  // For now, we'll simplify this test to avoid crashes
-  // The main thing we need to test is that the responseSent flag gets set
+  WebResponse response;
 
-  // Just verify that the method exists and can be compiled
-  TEST_ASSERT_TRUE(true);
+  // Set up the response
+  response.setContent("Test Content", "text/plain");
 
-  // Note: We're skipping the actual call to sendTo with nullptr
-  // which was causing the crash. We'll come back to this once
-  // we have more information about the implementation.
+  // Check that the response is not sent yet
+  TEST_ASSERT_FALSE(response.isResponseSent());
+
+  // Instead of using a custom structure, we'll simply use a null pointer
+  // This is safe because the native implementation doesn't dereference the
+  // pointer
+  WebServerClass *nullServer = nullptr;
+
+  // Call sendTo - in native testing this just sets responseSent = true
+  response.sendTo(nullServer);
+
+  // Verify the response is now marked as sent
+  TEST_ASSERT_TRUE(response.isResponseSent());
 }
 
 // Test storage stream content method (stub in native testing)
@@ -212,15 +224,22 @@ void test_web_response_storage_stream() {
 
 // Registration function to run all web response tests
 void register_web_response_tests() {
+  // Run original tests first - these should be stable
   RUN_TEST(test_web_response_constructor);
   RUN_TEST(test_web_response_set_status);
   RUN_TEST(test_web_response_set_content);
   RUN_TEST(test_web_response_set_progmem_content);
+
+  // Re-enable one enhanced test to see if it causes the crash
   RUN_TEST(test_web_response_progmem_data_content);
+
   RUN_TEST(test_web_response_set_headers);
   RUN_TEST(test_web_response_redirect);
   RUN_TEST(test_web_response_set_json_content);
   RUN_TEST(test_web_response_send_to);
+
+  // Re-enable with our safer implementation
   RUN_TEST(test_web_response_send_to_detailed);
+
   RUN_TEST(test_web_response_storage_stream);
 }
