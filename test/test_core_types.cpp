@@ -5,6 +5,8 @@
 // Test the core types and utilities
 #include <interface/auth_types.h>
 #include <interface/openapi_types.h>
+#include <interface/utils/route_variant.h>
+#include <interface/web_module_interface.h>
 #include <interface/web_module_types.h>
 
 // Test OpenAPIFactory if available
@@ -25,6 +27,21 @@ void test_string_compatibility();
 void test_json_serialization();
 void setUpMockInfra();
 void tearDownMockInfra();
+
+// Forward declare route variant test functions
+void test_route_variant_web_route_constructor();
+void test_route_variant_api_route_constructor();
+void test_route_variant_copy_constructor();
+void test_route_variant_assignment_operator();
+void test_route_variant_self_assignment();
+void test_route_variant_getters();
+void test_route_variant_wrong_type_getters();
+void test_route_variant_template_helpers();
+void test_web_route_constructors();
+void test_api_route_constructors();
+void test_api_path_normalization();
+void test_web_route_api_path_warning();
+void test_openapi_doc_copy_constructor();
 
 void setUp() {
   ArduinoFakeReset();
@@ -178,6 +195,22 @@ int main(int argc, char **argv) {
   RUN_TEST(test_string_compatibility);
   RUN_TEST(test_json_serialization);
 
+  // Run route variant tests - run the most important tests first
+  RUN_TEST(test_web_route_api_path_warning); // Test that might be causing
+                                             // issues - run first
+  RUN_TEST(test_route_variant_web_route_constructor);
+  RUN_TEST(test_route_variant_api_route_constructor);
+  RUN_TEST(test_web_route_constructors);
+  RUN_TEST(test_api_route_constructors);
+  RUN_TEST(test_api_path_normalization);
+  RUN_TEST(test_openapi_doc_copy_constructor);
+  RUN_TEST(test_route_variant_getters);
+  RUN_TEST(test_route_variant_template_helpers);
+  RUN_TEST(test_route_variant_copy_constructor);
+  RUN_TEST(test_route_variant_assignment_operator);
+  RUN_TEST(test_route_variant_self_assignment);
+  RUN_TEST(test_route_variant_wrong_type_getters);
+
   UNITY_END();
   return 0;
 }
@@ -204,6 +237,22 @@ void setup() {
   RUN_TEST(test_mock_web_response_headers_and_redirect);
   RUN_TEST(test_string_compatibility);
   RUN_TEST(test_json_serialization);
+
+  // Run route variant tests - run the most important tests first
+  RUN_TEST(test_web_route_api_path_warning); // Test that might be causing
+                                             // issues - run first
+  RUN_TEST(test_route_variant_web_route_constructor);
+  RUN_TEST(test_route_variant_api_route_constructor);
+  RUN_TEST(test_web_route_constructors);
+  RUN_TEST(test_api_route_constructors);
+  RUN_TEST(test_api_path_normalization);
+  RUN_TEST(test_openapi_doc_copy_constructor);
+  RUN_TEST(test_route_variant_getters);
+  RUN_TEST(test_route_variant_template_helpers);
+  RUN_TEST(test_route_variant_copy_constructor);
+  RUN_TEST(test_route_variant_assignment_operator);
+  RUN_TEST(test_route_variant_self_assignment);
+  RUN_TEST(test_route_variant_wrong_type_getters);
 
   UNITY_END();
 }
