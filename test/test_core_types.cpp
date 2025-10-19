@@ -43,6 +43,17 @@ void test_api_path_normalization();
 void test_web_route_api_path_warning();
 void test_openapi_doc_copy_constructor();
 
+// Forward declare WebResponse test functions
+void test_web_response_constructor();
+void test_web_response_set_status();
+void test_web_response_set_content();
+void test_web_response_set_progmem_content();
+void test_web_response_set_headers();
+void test_web_response_redirect();
+void test_web_response_set_json_content();
+void test_web_response_send_to();
+void test_web_response_storage_stream();
+
 void setUp() {
   ArduinoFakeReset();
   setUpMockInfra();
@@ -211,6 +222,17 @@ int main(int argc, char **argv) {
   RUN_TEST(test_route_variant_self_assignment);
   RUN_TEST(test_route_variant_wrong_type_getters);
 
+  // Run WebResponse tests
+  RUN_TEST(test_web_response_constructor);
+  RUN_TEST(test_web_response_set_status);
+  RUN_TEST(test_web_response_set_content);
+  RUN_TEST(test_web_response_set_progmem_content);
+  RUN_TEST(test_web_response_set_headers);
+  RUN_TEST(test_web_response_redirect);
+  RUN_TEST(test_web_response_set_json_content);
+  RUN_TEST(test_web_response_send_to);
+  RUN_TEST(test_web_response_storage_stream);
+
   UNITY_END();
   return 0;
 }
@@ -253,6 +275,17 @@ void setup() {
   RUN_TEST(test_route_variant_assignment_operator);
   RUN_TEST(test_route_variant_self_assignment);
   RUN_TEST(test_route_variant_wrong_type_getters);
+
+  // Run WebResponse tests
+  RUN_TEST(test_web_response_constructor);
+  RUN_TEST(test_web_response_set_status);
+  RUN_TEST(test_web_response_set_content);
+  RUN_TEST(test_web_response_set_progmem_content);
+  RUN_TEST(test_web_response_set_headers);
+  RUN_TEST(test_web_response_redirect);
+  RUN_TEST(test_web_response_set_json_content);
+  RUN_TEST(test_web_response_send_to);
+  RUN_TEST(test_web_response_storage_stream);
 
   UNITY_END();
 }
