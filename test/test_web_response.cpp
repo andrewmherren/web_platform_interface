@@ -1,10 +1,8 @@
+#include "test_web_response.h"
 #include <ArduinoJson.h>
 #include <interface/string_compat.h>
 #include <interface/web_response.h>
 #include <unity.h>
-
-// We can't easily mock the WebServerClass directly since it's platform-specific
-// Instead, we'll focus on testing the response object methods
 
 // Test WebResponse default constructor initialization
 void test_web_response_constructor() {
@@ -181,4 +179,15 @@ void test_web_response_storage_stream() {
   TEST_ASSERT_TRUE(true);
 }
 
-// Implementation of the test functions declared in test_core_types.cpp
+// Registration function to run all web response tests
+void register_web_response_tests() {
+  RUN_TEST(test_web_response_constructor);
+  RUN_TEST(test_web_response_set_status);
+  RUN_TEST(test_web_response_set_content);
+  RUN_TEST(test_web_response_set_progmem_content);
+  RUN_TEST(test_web_response_set_headers);
+  RUN_TEST(test_web_response_redirect);
+  RUN_TEST(test_web_response_set_json_content);
+  RUN_TEST(test_web_response_send_to);
+  RUN_TEST(test_web_response_storage_stream);
+}

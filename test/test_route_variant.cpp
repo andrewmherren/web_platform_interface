@@ -1,3 +1,4 @@
+#include "test_route_variant.h"
 #include <interface/utils/route_variant.h>
 #include <interface/web_module_interface.h>
 #include <unity.h>
@@ -225,4 +226,22 @@ void test_openapi_doc_copy_constructor() {
 
   OpenAPIDocumentation copy(original); // This should use the copy constructor
   TEST_ASSERT_EQUAL_STRING("Original summary", copy.getSummary().c_str());
+}
+
+// Registration function to run all route variant tests
+void register_route_variant_tests() {
+  // Run route variant tests - run the most important tests first
+  RUN_TEST(test_web_route_api_path_warning); // Test that might be causing issues - run first
+  RUN_TEST(test_route_variant_web_route_constructor);
+  RUN_TEST(test_route_variant_api_route_constructor);
+  RUN_TEST(test_web_route_constructors);
+  RUN_TEST(test_api_route_constructors);
+  RUN_TEST(test_api_path_normalization);
+  RUN_TEST(test_openapi_doc_copy_constructor);
+  RUN_TEST(test_route_variant_getters);
+  RUN_TEST(test_route_variant_template_helpers);
+  RUN_TEST(test_route_variant_copy_constructor);
+  RUN_TEST(test_route_variant_assignment_operator);
+  RUN_TEST(test_route_variant_self_assignment);
+  RUN_TEST(test_route_variant_wrong_type_getters);
 }
