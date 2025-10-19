@@ -5,6 +5,7 @@
 // Test the core types and utilities
 #include <interface/auth_types.h>
 #include <interface/openapi_types.h>
+#include <interface/string_compat.h>
 #include <interface/web_module_interface.h>
 #include <interface/web_module_types.h>
 
@@ -134,9 +135,58 @@ void test_auth_requirements_collections() {
   TEST_ASSERT_TRUE(hasToken);
 }
 
+void test_web_module_types_utilities() {
+  // Test wmMethodToString
+  TEST_ASSERT_EQUAL_STRING("GET", wmMethodToString(WebModule::WM_GET).c_str());
+  TEST_ASSERT_EQUAL_STRING("POST",
+                           wmMethodToString(WebModule::WM_POST).c_str());
+  TEST_ASSERT_EQUAL_STRING("PUT", wmMethodToString(WebModule::WM_PUT).c_str());
+  TEST_ASSERT_EQUAL_STRING("DELETE",
+                           wmMethodToString(WebModule::WM_DELETE).c_str());
+  TEST_ASSERT_EQUAL_STRING("PATCH",
+                           wmMethodToString(WebModule::WM_PATCH).c_str());
+  TEST_ASSERT_EQUAL_STRING("UNKNOWN",
+                           wmMethodToString((WebModule::Method)99).c_str());
+
+  // Test wmMethodToHttpMethod
+  TEST_ASSERT_EQUAL(HTTP_GET, wmMethodToHttpMethod(WebModule::WM_GET));
+  TEST_ASSERT_EQUAL(HTTP_POST, wmMethodToHttpMethod(WebModule::WM_POST));
+  TEST_ASSERT_EQUAL(HTTP_PUT, wmMethodToHttpMethod(WebModule::WM_PUT));
+  TEST_ASSERT_EQUAL(HTTP_DELETE, wmMethodToHttpMethod(WebModule::WM_DELETE));
+  TEST_ASSERT_EQUAL(HTTP_PATCH, wmMethodToHttpMethod(WebModule::WM_PATCH));
+  TEST_ASSERT_EQUAL(HTTP_GET, wmMethodToHttpMethod(
+                                  (WebModule::Method)99)); // Default fallback
+
+  // Test httpMethodToWMMethod
+  TEST_ASSERT_EQUAL(WebModule::WM_GET, httpMethodToWMMethod(HTTP_GET));
+  TEST_ASSERT_EQUAL(WebModule::WM_POST, httpMethodToWMMethod(HTTP_POST));
+  TEST_ASSERT_EQUAL(WebModule::WM_PUT, httpMethodToWMMethod(HTTP_PUT));
+  TEST_ASSERT_EQUAL(WebModule::WM_DELETE, httpMethodToWMMethod(HTTP_DELETE));
+  TEST_ASSERT_EQUAL(WebModule::WM_PATCH, httpMethodToWMMethod(HTTP_PATCH));
+}
+
+void test_string_compat_utilities() {
+  // Test StringUtils::isStringEmpty
+  String empty("");
+  String notEmpty("test");
+
+  TEST_ASSERT_TRUE(StringUtils::isStringEmpty(empty));
+  TEST_ASSERT_FALSE(StringUtils::isStringEmpty(notEmpty));
+
+  // Test with zero-length constructed string
+  String zeroLength;
+  TEST_ASSERT_TRUE(StringUtils::isStringEmpty(zeroLength));
+
+  // Test with whitespace (should not be considered empty)
+  String whitespace(" ");
+  TEST_ASSERT_FALSE(StringUtils::isStringEmpty(whitespace));
+}
+
 // Registration function to run all core type tests
 void register_core_types_tests() {
   RUN_TEST(test_web_module_methods);
+  RUN_TEST(test_web_module_types_utilities);
+  RUN_TEST(test_string_compat_utilities);
   RUN_TEST(test_auth_types);
   RUN_TEST(test_openapi_documentation_basic_operations);
 

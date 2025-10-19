@@ -3,6 +3,8 @@
 
 // Forward declarations for core type tests
 void test_web_module_methods();
+void test_web_module_types_utilities();
+void test_string_compat_utilities();
 void test_auth_types();
 void test_openapi_documentation_basic_operations();
 void test_auth_context_basic_operations();
