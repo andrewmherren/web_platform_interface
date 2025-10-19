@@ -2,8 +2,11 @@
 #define MOCK_WEB_PLATFORM_H
 
 // Use ArduinoFake for Arduino compatibility
+// NATIVE_PLATFORM should be defined by the build system for native testing
+// If not defined, assume we're in an Arduino environment
 #ifndef NATIVE_PLATFORM
-#define NATIVE_PLATFORM 1 // Ensure NATIVE_PLATFORM is defined for testing
+#error                                                                         \
+    "NATIVE_PLATFORM must be defined by the build system for native testing. Check your platformio.ini configuration."
 #endif
 
 #include "arduino_string_compat.h"
@@ -189,21 +192,29 @@ inline WebResponse &asMockWebResponse(MockWebResponse &mockRes) {
   return reinterpret_cast<WebResponse &>(mockRes);
 }
 
-// Mock compilation flags for testing
-#ifndef OPENAPI_ENABLED
+// Feature detection for testing - using constexpr for type safety
+namespace testing {
+// Compile-time feature detection
 #ifdef WEB_PLATFORM_OPENAPI
-#define OPENAPI_ENABLED 1
+constexpr bool openapi_enabled = (WEB_PLATFORM_OPENAPI != 0);
 #else
-#define OPENAPI_ENABLED 0
+constexpr bool openapi_enabled = false;
 #endif
+
+#ifdef WEB_PLATFORM_MAKERAPI
+constexpr bool makerapi_enabled = (WEB_PLATFORM_MAKERAPI != 0);
+#else
+constexpr bool makerapi_enabled = false;
+#endif
+
+// Legacy macro compatibility (for existing code)
+#ifndef OPENAPI_ENABLED
+#define OPENAPI_ENABLED (testing::openapi_enabled ? 1 : 0)
 #endif
 
 #ifndef MAKERAPI_ENABLED
-#ifdef WEB_PLATFORM_MAKERAPI
-#define MAKERAPI_ENABLED 1
-#else
-#define MAKERAPI_ENABLED 0
+#define MAKERAPI_ENABLED (testing::makerapi_enabled ? 1 : 0)
 #endif
-#endif
+} // namespace testing
 
 #endif // MOCK_WEB_PLATFORM_H
