@@ -41,8 +41,8 @@ private:
 
 public:
   // Constructor for HTTP server (Arduino WebServer)
-  WebRequest(WebServerClass *server);
-  WebRequest(httpd_req *req);
+  explicit WebRequest(WebServerClass *server);
+  explicit WebRequest(httpd_req *req);
 
   // Request information
   String getPath() const { return path; }
@@ -72,7 +72,6 @@ public:
   void setMatchedRoute(const char *routePattern) {
     matchedRoutePattern = routePattern ? String(routePattern) : "";
   }
-  // String getMatchedRoute() const { return matchedRoutePattern; }
 
   // Module context (used by template processing)
   void setModuleBasePath(const String &basePath) { moduleBasePath = basePath; }
@@ -85,7 +84,6 @@ private:
   void parseFormData(const String &formData);
   void parseJsonData(const String &jsonData);
   void parseRequestBody(const String &body, const String &contentType);
-  // void parseHeaders();
   String urlDecode(const String &str);
 
   void parseClientIp(httpd_req *req);
