@@ -3,8 +3,9 @@
 #include <unity.h>
 
 // Include mock infrastructure tests
+#include <interface/string_compat.h>
 #include <testing/mock_web_platform.h>
-#include <testing/utils/string_compat.h>
+
 
 // Test MockWebRequest basic functionality
 void test_mock_web_request_basic_operations() {
