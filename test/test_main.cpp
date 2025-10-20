@@ -6,6 +6,8 @@
 #include "test_helpers.h"
 #include "test_mocks.h"
 #include "test_route_variant.h"
+#include "test_web_module_interface.h"
+#include "test_web_platform_interface.h"
 #include "test_web_request.h"
 #include "test_web_response.h"
 
@@ -28,6 +30,8 @@ int main(int argc, char **argv) {
   register_web_request_tests();
   register_mock_tests();
   register_helper_tests();
+  register_web_module_interface_tests();
+  register_web_platform_interface_tests();
 
   UNITY_END();
   return 0;
@@ -44,6 +48,8 @@ void setup() {
   register_web_request_tests();
   register_mock_tests();
   register_helper_tests();
+  register_web_module_interface_tests();
+  register_web_platform_interface_tests();
 
   UNITY_END();
 }
