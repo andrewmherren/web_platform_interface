@@ -7,9 +7,11 @@
 #include "test_mocks.h"
 #include "test_route_variant.h"
 #include "test_web_module_interface.h"
+#include "test_web_module_types.h"
 #include "test_web_platform_interface.h"
 #include "test_web_request.h"
 #include "test_web_response.h"
+
 
 void setUp() {
   ArduinoFakeReset();
@@ -25,6 +27,7 @@ int main(int argc, char **argv) {
   // Register and run all test groups
   register_core_types_tests();
   register_route_variant_tests();
+  register_web_module_types_tests();
   // Re-enable web_response tests with selectively disabled new tests
   register_web_response_tests();
   register_web_request_tests();
@@ -43,6 +46,7 @@ void setup() {
   // Register and run all test groups
   register_core_types_tests();
   register_route_variant_tests();
+  register_web_module_types_tests();
   // Re-enable web_response tests with selectively disabled new tests
   register_web_response_tests();
   register_web_request_tests();

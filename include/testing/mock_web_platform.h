@@ -29,7 +29,7 @@
 #include <interface/web_response.h>
 
 // Include string compatibility helpers
-#include "utils/string_compat.h"
+#include "interface/string_compat.h"
 
 // Enhanced JsonResponseBuilder with native testing compatibility
 class JsonResponseBuilder {
