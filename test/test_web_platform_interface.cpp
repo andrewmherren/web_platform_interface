@@ -5,9 +5,10 @@
 #include <web_platform_interface.h>
 
 // Include mock infrastructure
+#include <interface/string_compat.h>
 #include <testing/mock_web_platform.h>
 #include <testing/testing_platform_provider.h>
-#include <testing/utils/string_compat.h>
+
 
 // Simple test module for testing platform interactions
 class TestWebModule : public IWebModule {
