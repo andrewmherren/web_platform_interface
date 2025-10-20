@@ -120,8 +120,8 @@ jobs:
           path: uncovered-snippets.jsonl
 
       # Optional: Upload coverage.xml as an artifact for debugging
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage.xml
+      # - name: Upload coverage report
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: coverage-report
+      #     path: coverage.xml
