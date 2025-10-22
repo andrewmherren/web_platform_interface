@@ -7,7 +7,6 @@
 #include <vector>
 #include <web_platform_interface.h> // Full interface now in main header
 
-
 /**
  * Single canonical mock platform
  */
@@ -19,6 +18,11 @@ private:
   std::vector<std::pair<String, IWebModule *>> registeredModules;
   int routeCount = 0;
 
+  // Callback functions for testing
+  std::function<void(const String &)> warnCallback = [](const String &) {};
+  std::function<void(const String &)> errorCallback = [](const String &) {};
+  std::function<void(const String &)> debugCallback = [](const String &) {};
+
 public:
   void begin(const String &name) override { deviceName = name; }
 
@@ -28,7 +32,13 @@ public:
   }
 
   void handle() override {
-    // Mock implementation - do nothing
+    // Call handle() on all registered modules
+    for (const auto &modulePair : registeredModules) {
+      IWebModule *module = modulePair.second;
+      if (module) {
+        module->handle();
+      }
+    }
   }
 
   bool isConnected() const override { return connected; }
@@ -50,6 +60,13 @@ public:
                         WebModule::UnifiedRouteHandler handler,
                         const AuthRequirements &auth,
                         WebModule::Method method) override {
+    // Check for API path warning
+    if (path.startsWith("/api/") || path.startsWith("api/")) {
+      warnCallback(
+          "WARNING: registerWebRoute() path '" + path +
+          "' starts with '/api/' or 'api/'. Consider using registerApiRoute() "
+          "instead for better API documentation and path normalization.");
+    }
     routeCount++;
   }
 
@@ -112,6 +129,19 @@ public:
   int getRegisteredModuleCount() const { return registeredModules.size(); }
   std::vector<std::pair<String, IWebModule *>> getRegisteredModules() const {
     return registeredModules;
+  }
+
+  // Callback setters for testing
+  void onWarn(std::function<void(const String &)> callback) {
+    warnCallback = callback;
+  }
+
+  void onError(std::function<void(const String &)> callback) {
+    errorCallback = callback;
+  }
+
+  void onDebug(std::function<void(const String &)> callback) {
+    debugCallback = callback;
   }
 };
 

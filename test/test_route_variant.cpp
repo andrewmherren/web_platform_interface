@@ -116,14 +116,10 @@ void test_route_variant_wrong_type_getters() {
                     AuthRequirements{});
   RouteVariant webVariant(webRoute);
 
-  // Try to get ApiRoute from WebRoute variant - should return dummy
-  // This specifically covers line 67 - dummyHandler for ApiRoute
   const ApiRoute &dummyApi = webVariant.getApiRoute();
   // The dummy implementation may return "/" as the default path
   TEST_ASSERT_TRUE(dummyApi.webRoute.path.equals("") ||
                    dummyApi.webRoute.path.equals("/"));
-  // In the native implementation, the handler might be null
-  // so we don't assert on it
 
   OpenAPIDocumentation docs;
   ApiRoute apiRoute("/api/test", WebModule::WM_POST, testApiHandler,
@@ -135,8 +131,6 @@ void test_route_variant_wrong_type_getters() {
   const WebRoute &dummyWeb = apiVariant.getWebRoute();
   // The dummy implementation may return "" as the default path
   TEST_ASSERT_TRUE(dummyWeb.path.equals("") || dummyWeb.path.equals("/"));
-  // In the native implementation, the handler might be null
-  // so we don't assert on it
 }
 
 void test_route_variant_template_helpers() {

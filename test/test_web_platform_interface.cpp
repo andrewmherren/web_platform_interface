@@ -9,7 +9,6 @@
 #include <testing/mock_web_platform.h>
 #include <testing/testing_platform_provider.h>
 
-
 // Simple test module for testing platform interactions
 class TestWebModule : public IWebModule {
 public:
@@ -296,6 +295,18 @@ void test_platform_provider_error_handling() {
   // This should work without error
   IWebPlatform &platform = IWebPlatformProvider::getPlatformInstance();
   TEST_ASSERT_NOT_NULL(&platform);
+#else
+  // On embedded platforms, test the error message printing
+  When(Method(ArduinoFake(), println)).AlwaysReturn();
+
+  // Call getPlatformInstance, which should print error but won't halt in test
+  // environment
+  IWebPlatform *platformPtr = &(IWebPlatformProvider::getPlatformInstance());
+
+  // Verify error message was printed
+  Verify(Method(ArduinoFake(), println).Matching([](const char *msg) {
+    return strcmp(msg, "FATAL: WebPlatform provider not initialized") == 0;
+  }));
 #endif
 
   // Restore original instance

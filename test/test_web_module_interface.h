@@ -9,6 +9,8 @@ void test_web_module_lifecycle();
 void test_web_module_with_config();
 void test_auth_requirements_in_routes();
 void test_route_variant_conversions();
+void test_api_path_warning();
+void test_iweb_module_default_implementations();
 
 // Registration function to be called from main
 void register_web_module_interface_tests();

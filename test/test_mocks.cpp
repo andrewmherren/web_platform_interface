@@ -6,6 +6,17 @@
 #include <interface/string_compat.h>
 #include <testing/mock_web_platform.h>
 
+// Test module base path functionality in MockWebRequest instead
+void test_mock_platform_module_base_path() {
+  MockWebRequest mockReq;
+
+  // Default base path should be empty
+  TEST_ASSERT_EQUAL_STRING("", mockReq.getModuleBasePath().c_str());
+
+  // Test setting and getting the module base path
+  mockReq.setModuleBasePath("/test/module");
+  TEST_ASSERT_EQUAL_STRING("/test/module", mockReq.getModuleBasePath().c_str());
+}
 
 // Test MockWebRequest basic functionality
 void test_mock_web_request_basic_operations() {
@@ -25,6 +36,12 @@ void test_mock_web_request_basic_operations() {
   TEST_ASSERT_EQUAL_STRING("value1", mockReq.getParam("key1").c_str());
   TEST_ASSERT_EQUAL_STRING("value2", mockReq.getParam("key2").c_str());
   TEST_ASSERT_EQUAL_STRING("", mockReq.getParam("nonexistent").c_str());
+
+  // Test getAllParams method
+  std::map<String, String> allParams = mockReq.getAllParams();
+  TEST_ASSERT_EQUAL(2, allParams.size());
+  TEST_ASSERT_EQUAL_STRING("value1", allParams["key1"].c_str());
+  TEST_ASSERT_EQUAL_STRING("value2", allParams["key2"].c_str());
 
   // Test body handling
   mockReq.setBody("test body content");
@@ -139,6 +156,7 @@ void test_mock_web_response_headers_and_redirect() {
 
 // Registration function to run all mock tests
 void register_mock_tests() {
+  RUN_TEST(test_mock_platform_module_base_path);
   RUN_TEST(test_mock_web_request_basic_operations);
   RUN_TEST(test_mock_web_request_headers_and_auth);
   RUN_TEST(test_mock_web_response_basic_operations);

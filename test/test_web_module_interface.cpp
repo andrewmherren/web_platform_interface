@@ -1,26 +1,12 @@
 #include "test_web_module_interface.h"
 #include <ArduinoFake.h>
 #include <ArduinoJson.h>
-#include <testing/mock_web_platform.h>
+#include <testing/testing_platform_provider.h>
 #include <unity.h>
 #include <web_platform_interface.h>
 
-// For testing purposes only - avoid affecting global state
-#ifdef NATIVE_PLATFORM
-// Safe test-local storage
-class DebugCapture {
-public:
-  String output;
-  void clear() { output = ""; }
-  String get() { return output; }
-};
-
-// Use a function-local instance to avoid static initialization issues
-DebugCapture &getDebugCapture() {
-  static DebugCapture instance;
-  return instance;
-}
-#endif
+// Note: Previous test mocks were moved to the centralized mock in
+// lib/web_platform_interface/src/testing/mock_web_platform.h
 
 // Test WebRoute constructors
 void test_web_route_full_constructors() {
@@ -372,6 +358,106 @@ void test_route_variant_conversions() {
   TEST_ASSERT_TRUE(routes[1].isApiRoute());
 }
 
+// Basic WebRoute creation test - keep this test to test the basic functionality
+void test_basic_route_creation() {
+  TEST_MESSAGE("Creating a basic WebRoute");
+
+  // Create a simple route with a standard path
+  WebRoute normalRoute("/normal", WebModule::WM_GET,
+                       [](WebRequest &req, WebResponse &res) {});
+  TEST_ASSERT_EQUAL_STRING("/normal", normalRoute.path.c_str());
+
+  // Verify method is stored correctly
+  TEST_ASSERT_EQUAL(WebModule::WM_GET, normalRoute.method);
+
+  // Verify default auth requirements (NONE)
+  TEST_ASSERT_EQUAL(1, normalRoute.authRequirements.size());
+  TEST_ASSERT_EQUAL(AuthType::NONE, normalRoute.authRequirements[0]);
+}
+
+/**
+ * Test API path warnings in route registration
+ *
+ * This test verifies that appropriate warnings are emitted when routes
+ * are registered with paths that start with 'api/' since this can cause
+ * confusion with the ApiRoute type.
+ */
+void test_api_path_warning() {
+  // This test creates a WebPlatform provider
+  MockWebPlatformProvider provider;
+  MockWebPlatform &mockPlatform = provider.getMockPlatform();
+
+  // Initialize platform
+  mockPlatform.begin("ApiPathWarningTest");
+
+  // Set up warning capture
+  bool warningEmitted = false;
+  String capturedWarning = "";
+
+  mockPlatform.onWarn([&warningEmitted, &capturedWarning](const String &msg) {
+    warningEmitted = true;
+    capturedWarning = msg;
+  });
+
+  // Test registering a route with api path
+  mockPlatform.registerWebRoute(
+      "/api/test", [](WebRequest &req, WebResponse &res) {}, {AuthType::NONE},
+      WebModule::WM_GET);
+
+  // Verify warning was emitted
+  TEST_ASSERT_TRUE(warningEmitted);
+  TEST_ASSERT_TRUE(capturedWarning.indexOf("/api/") >= 0);
+
+  // Reset warning state
+  warningEmitted = false;
+  capturedWarning = "";
+
+  // Test with no leading slash - still an API path
+  mockPlatform.registerWebRoute(
+      "api/test2", [](WebRequest &req, WebResponse &res) {}, {AuthType::NONE},
+      WebModule::WM_GET);
+
+  // Verify warning was emitted
+  TEST_ASSERT_TRUE(warningEmitted);
+  TEST_ASSERT_TRUE(capturedWarning.indexOf("api/") >= 0);
+
+  // Reset warning state
+  warningEmitted = false;
+  capturedWarning = "";
+
+  // Register a normal route (should not trigger warning)
+  mockPlatform.registerWebRoute(
+      "/normal", [](WebRequest &req, WebResponse &res) {}, {AuthType::NONE},
+      WebModule::WM_GET);
+
+  // Verify no warning was emitted
+  TEST_ASSERT_FALSE(warningEmitted);
+}
+
+// Test default implementations in IWebModule
+void test_iweb_module_default_implementations() {
+  // Create a minimal implementation that only implements required methods
+  class MinimalWebModule : public IWebModule {
+  public:
+    std::vector<RouteVariant> getHttpRoutes() override { return {}; }
+    std::vector<RouteVariant> getHttpsRoutes() override { return {}; }
+    String getModuleName() const override { return "MinimalModule"; }
+  };
+
+  MinimalWebModule module;
+
+  // Test default version and description
+  TEST_ASSERT_EQUAL_STRING("1.0.0", module.getModuleVersion().c_str());
+  TEST_ASSERT_EQUAL_STRING("Web-enabled module",
+                           module.getModuleDescription().c_str());
+
+  // Test that getWebRoutes returns same as getHttpRoutes by default
+  auto httpRoutes = module.getHttpRoutes();
+  auto webRoutes = module.getWebRoutes();
+
+  TEST_ASSERT_EQUAL(httpRoutes.size(), webRoutes.size());
+}
+
 // Registration function
 void register_web_module_interface_tests() {
   RUN_TEST(test_web_route_full_constructors);
@@ -381,4 +467,7 @@ void register_web_module_interface_tests() {
   RUN_TEST(test_web_module_with_config);
   RUN_TEST(test_auth_requirements_in_routes);
   RUN_TEST(test_route_variant_conversions);
+  RUN_TEST(test_basic_route_creation);
+  RUN_TEST(test_api_path_warning);
+  RUN_TEST(test_iweb_module_default_implementations);
 }
