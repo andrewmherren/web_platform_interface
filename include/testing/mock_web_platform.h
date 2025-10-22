@@ -264,35 +264,6 @@ void runResponseOperation(MockWebResponse &res, Function operation) {
   operation(res);
 }
 
-// DANGER ZONE - LEGACY SUPPORT ONLY
-// These functions are COMPLETELY REMOVED - DO NOT USE THEM
-//
-// If you are seeing build errors about missing asMockWebRequest or
-// asMockWebResponse functions, you need to update your tests to use the safer
-// alternatives above.
-//
-// To temporarily enable the unsafe functions for migration only, define
-// WEB_PLATFORM_TESTING_ALLOW_UNSAFE_CASTS Note that using these functions WILL
-// cause memory corruption and crashes.
-
-#ifdef WEB_PLATFORM_TESTING_ALLOW_UNSAFE_CASTS
-// DO NOT USE THESE FUNCTIONS - THEY WILL CRASH YOUR PROGRAM
-// These are only provided as stub replacements to prevent compile errors during
-// migration. Using these in runtime code will cause memory corruption.
-
-inline WebRequest &asMockWebRequest(MockWebRequest &mockReq) {
-  // WARNING: This will crash if you try to use it - DO NOT USE!
-  // MockWebRequest is NOT a WebRequest and cannot be safely cast.
-  return *static_cast<WebRequest *>(nullptr); // Deliberately crashes
-}
-
-inline WebResponse &asMockWebResponse(MockWebResponse &mockRes) {
-  // WARNING: This will crash if you try to use it - DO NOT USE!
-  // MockWebResponse is NOT a WebResponse and cannot be safely cast.
-  return *static_cast<WebResponse *>(nullptr); // Deliberately crashes
-}
-#endif
-
 // Feature detection for testing - using constexpr for type safety
 namespace testing {
 // Compile-time feature detection

@@ -37,6 +37,19 @@ def parse_cov(xml_path):
                 hits = int(hits_str)
             except Exception:
                 hits = 0
+
+            # include condition coverage consideration
+            cond_cov = line.get("condition-coverage", "")
+            if cond_cov:
+                # Example formats: "0% (0/2)" or "50% (1/2)"
+                percent = cond_cov.split("%")[0].strip()
+                try:
+                    pct_val = int(percent)
+                    if pct_val == 0:
+                        hits = 0
+                except ValueError:
+                    pass
+
             results.setdefault(filename, {})[ln] = hits
     return results
 
