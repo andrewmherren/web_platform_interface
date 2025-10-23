@@ -145,10 +145,42 @@ void test_mock_web_platform_json() {
   TEST_ASSERT_TRUE(response.getContent().indexOf("Item 2") >= 0);
 }
 
+// Test parameter handling in mock request
+void test_mock_web_platform_params() {
+  MockWebPlatformProvider provider;
+
+  // Create a MockWebRequest - the param methods are in this class, not in
+  // MockWebPlatform
+  MockWebRequest mockRequest;
+
+  // Set mock parameters
+  mockRequest.setParam("id", "123");
+  mockRequest.setParam("name", "test");
+
+  // Test getParam - this tests the functionality in mock_web_platform.h
+  TEST_ASSERT_EQUAL_STRING("123", mockRequest.getParam("id").c_str());
+  TEST_ASSERT_EQUAL_STRING("test", mockRequest.getParam("name").c_str());
+
+  // Test missing parameter
+  TEST_ASSERT_EQUAL_STRING("", mockRequest.getParam("nonexistent").c_str());
+
+  // Test getAllParams
+  auto allParams = mockRequest.getAllParams();
+  TEST_ASSERT_EQUAL(2, allParams.size());
+  TEST_ASSERT_EQUAL_STRING("123", allParams["id"].c_str());
+  TEST_ASSERT_EQUAL_STRING("test", allParams["name"].c_str());
+
+  // Test module base path
+  mockRequest.setModuleBasePath("/test_module");
+  TEST_ASSERT_EQUAL_STRING("/test_module",
+                           mockRequest.getModuleBasePath().c_str());
+}
+
 // Register all mock platform tests
 void register_mock_web_platform_tests() {
   RUN_TEST(test_mock_web_platform_basics);
   RUN_TEST(test_mock_web_platform_routes);
   RUN_TEST(test_mock_web_platform_modules);
   RUN_TEST(test_mock_web_platform_json);
+  RUN_TEST(test_mock_web_platform_params);
 }

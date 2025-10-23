@@ -244,12 +244,21 @@ void test_web_module_lifecycle() {
   TEST_ASSERT_FALSE(module.wasConfigBeginCalled());
   TEST_ASSERT_FALSE(module.wasHandleCalled());
 
-  // Test begin()
+  // Test begin() - tests line 177
   module.begin();
   TEST_ASSERT_TRUE(module.wasBeginCalled());
   TEST_ASSERT_FALSE(module.wasConfigBeginCalled());
 
-  // Test handle()
+  // Test begin with JsonVariant - tests lines 178-180
+  TestWebModuleImpl module2;
+  StaticJsonDocument<64> doc;
+  doc["test"] = true;
+  module2.begin(doc.as<JsonVariant>());
+  TEST_ASSERT_TRUE(
+      module2.wasBeginCalled()); // Should call parameterless begin()
+  TEST_ASSERT_TRUE(module2.wasConfigBeginCalled());
+
+  // Test handle() - tests line 181
   module.handle();
   TEST_ASSERT_TRUE(module.wasHandleCalled());
 }
@@ -390,7 +399,8 @@ void test_api_path_warning() {
   // Initialize platform
   mockPlatform.begin("ApiPathWarningTest");
 
-  // Set up warning capture
+  // Set up warning capture to test line 36 in web_module_interface.h
+  // where WARN_PRINTLN is called for API path warnings
   bool warningEmitted = false;
   String capturedWarning = "";
 

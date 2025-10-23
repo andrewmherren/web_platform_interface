@@ -33,6 +33,13 @@ void test_httpMethodToWMMethod() {
   TEST_ASSERT_EQUAL(WebModule::WM_PUT, httpMethodToWMMethod(HTTP_PUT));
   TEST_ASSERT_EQUAL(WebModule::WM_DELETE, httpMethodToWMMethod(HTTP_DELETE));
   TEST_ASSERT_EQUAL(WebModule::WM_PATCH, httpMethodToWMMethod(HTTP_PATCH));
+
+  // Test default fallback case (line 67)
+  // Use an undefined HTTP method value to test the default case
+  const int UNDEFINED_HTTP_METHOD =
+      999; // Some value not matching any HTTP_* constant
+  TEST_ASSERT_EQUAL(WebModule::WM_GET,
+                    httpMethodToWMMethod((HTTPMethod)UNDEFINED_HTTP_METHOD));
 }
 
 void test_webmodule_enum_values() {

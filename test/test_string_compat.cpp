@@ -4,13 +4,21 @@
 #include <unity.h>
 
 void test_string_empty_check() {
-  // Test empty string
+  // Test empty string with global isStringEmpty function (line 51)
   String emptyString = "";
   TEST_ASSERT_TRUE(isStringEmpty(emptyString));
 
-  // Test non-empty string
+  // Test non-empty string with global isStringEmpty function
   String nonEmptyString = "test";
   TEST_ASSERT_FALSE(isStringEmpty(nonEmptyString));
+
+  // Test StringUtils namespace version
+  TEST_ASSERT_TRUE(StringUtils::isStringEmpty(emptyString));
+  TEST_ASSERT_FALSE(StringUtils::isStringEmpty(nonEmptyString));
+
+  // Test arduino_compat namespace version
+  TEST_ASSERT_TRUE(arduino_compat::isStringEmpty(emptyString));
+  TEST_ASSERT_FALSE(arduino_compat::isStringEmpty(nonEmptyString));
 }
 
 void test_serialize_json_to_std_string() {
@@ -19,6 +27,7 @@ void test_serialize_json_to_std_string() {
   doc["key"] = "value";
   doc["number"] = 42;
 
+  // Test serialization using the StringCompat namespace
   std::string result = StringCompat::serializeJsonToStdString(doc);
 
   TEST_ASSERT_TRUE(result.find("\"key\":\"value\"") != std::string::npos);
