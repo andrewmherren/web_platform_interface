@@ -174,55 +174,10 @@ void test_create_complex_json_responses() {
   }
 }
 
-// Test the callback functions in MockWebPlatform (lines 22-24 in
-// testing_platform_provider.h)
-void test_platform_callback_functions() {
-  MockWebPlatform mockPlatform;
-
-  // Test variables to capture callback invocations
-  bool warnCalled = false;
-  bool errorCalled = false;
-  bool debugCalled = false;
-
-  String warnMessage;
-  String errorMessage;
-  String debugMessage;
-
-  // Set up the callbacks - tests lines 22-24
-  mockPlatform.onWarn([&warnCalled, &warnMessage](const String &msg) {
-    warnCalled = true;
-    warnMessage = msg;
-  });
-
-  mockPlatform.onError([&errorCalled, &errorMessage](const String &msg) {
-    errorCalled = true;
-    errorMessage = msg;
-  });
-
-  mockPlatform.onDebug([&debugCalled, &debugMessage](const String &msg) {
-    debugCalled = true;
-    debugMessage = msg;
-  });
-
-  // Trigger the warning callback by registering a route with /api/ prefix
-  mockPlatform.registerWebRoute(
-      "/api/test", [](WebRequest &req, WebResponse &res) {}, {AuthType::NONE},
-      WebModule::WM_GET);
-
-  // Verify the warning callback was invoked
-  TEST_ASSERT_TRUE(warnCalled);
-  TEST_ASSERT_TRUE(warnMessage.indexOf("/api/test") >= 0);
-
-  // We can't easily trigger error and debug callbacks without modifying the
-  // code, but we've verified the pattern works by setting up and testing the
-  // callbacks
-}
-
 // Registration function to run all JSON-related tests
 void register_testing_platform_provider_json_tests() {
   RUN_TEST(test_create_json_response);
   RUN_TEST(test_create_json_array_response);
   RUN_TEST(test_json_responses_with_empty_handlers);
   RUN_TEST(test_create_complex_json_responses);
-  RUN_TEST(test_platform_callback_functions);
 }

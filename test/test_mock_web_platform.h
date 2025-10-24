@@ -13,6 +13,24 @@ void test_mock_web_platform_modules();
 // Test JSON response creation
 void test_mock_web_platform_json();
 
+// Test callback functions (debug, warn, error)
+void test_mock_web_platform_callbacks();
+
+// Test JSON conversion edge cases
+void test_mock_web_platform_json_edge_cases();
+
+// Test MockWebPlatformProvider constructor and methods
+void test_mock_web_platform_provider();
+
+// Test MockWebRequest constructor and methods
+void test_mock_web_request();
+
+// Test MockWebResponse constructor and methods
+void test_mock_web_response();
+
+// Test Authentication handling in MockWebRequest
+void test_mock_web_request_auth();
+
 // Register all mock platform tests
 void register_mock_web_platform_tests();
 
