@@ -1,3 +1,4 @@
+#include "../../include/interface/test_string_compat.h"
 #include <ArduinoFake.h>
 #include <ArduinoJson.h>
 #include <interface/string_compat.h>

@@ -1,4 +1,4 @@
-#include "test_web_module_interface.h"
+#include "../../include/interface/test_web_module_interface.h"
 #include <ArduinoFake.h>
 #include <ArduinoJson.h>
 #include <testing/testing_platform_provider.h>

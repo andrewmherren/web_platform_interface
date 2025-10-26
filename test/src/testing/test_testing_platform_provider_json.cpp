@@ -1,4 +1,4 @@
-#include "test_testing_platform_provider_json.h"
+#include "../../include/testing/test_testing_platform_provider_json.h"
 #include <ArduinoFake.h>
 #include <ArduinoJson.h>
 #include <interface/string_compat.h>

@@ -1,20 +1,20 @@
 #include <ArduinoFake.h>
 #include <unity.h>
 
+#include "include/test_helpers.h"
 // Include all test header files
-#include "test_core_types.h"
-#include "test_helpers.h"
-#include "test_mock_web_platform.h" // Add our new mock platform tests
-#include "test_mocks.h"
-#include "test_route_variant.h"
-#include "test_route_variant_native.h"
-#include "test_string_compat.h"
-#include "test_testing_platform_provider_json.h"
-#include "test_web_module_interface.h"
-#include "test_web_module_types.h"
-#include "test_web_platform_interface.h"
-#include "test_web_request.h"
-#include "test_web_response.h"
+#include "include/interface/test_core_types.h"
+#include "include/interface/test_string_compat.h"
+#include "include/interface/test_web_module_interface.h"
+#include "include/interface/test_web_module_types.h"
+#include "include/interface/test_web_platform_interface.h"
+#include "include/interface/test_web_request.h"
+#include "include/interface/test_web_response.h"
+#include "include/interface/utils/test_route_variant.h"
+#include "include/testing/test_mock_web_platform.h"
+#include "include/testing/test_mocks.h"
+#include "include/testing/test_route_variant_native.h"
+#include "include/testing/test_testing_platform_provider_json.h"
 
 void setUp() {
   ArduinoFakeReset();
