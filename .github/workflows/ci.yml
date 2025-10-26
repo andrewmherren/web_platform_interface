@@ -65,6 +65,7 @@ jobs:
             --root $GITHUB_WORKSPACE \
             --object-directory .pio/build/test_native \
             --filter "src|include" \
+            --exclude-throw-branches \
             --exclude-directories ".*libdeps.*" \
             --exclude ".*FakeIt.*" \
             --exclude ".*Arduino.*" \
