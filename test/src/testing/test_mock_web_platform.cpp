@@ -1065,4 +1065,10 @@ void register_mock_web_platform_tests() {
   RUN_TEST(test_mock_web_platform_handle_edge_cases);
   RUN_TEST(test_mock_web_platform_disable_route_edge_cases);
   RUN_TEST(test_mock_web_platform_json_builder_variations);
+
+  // Targeted coverage tests for specific missing branches
+  RUN_TEST(test_mock_web_request_targeted_coverage);
+  RUN_TEST(test_mock_web_response_targeted_coverage);
+  RUN_TEST(test_mock_auth_context_targeted_coverage);
+  RUN_TEST(test_mock_web_platform_targeted_coverage);
 }
