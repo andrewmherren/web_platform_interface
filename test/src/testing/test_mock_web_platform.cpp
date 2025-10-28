@@ -1071,4 +1071,6 @@ void register_mock_web_platform_tests() {
   RUN_TEST(test_mock_web_response_targeted_coverage);
   RUN_TEST(test_mock_auth_context_targeted_coverage);
   RUN_TEST(test_mock_web_platform_targeted_coverage);
+  RUN_TEST(test_ternary_operator_branches);
+  RUN_TEST(test_string_conversion_edge_cases);
 }

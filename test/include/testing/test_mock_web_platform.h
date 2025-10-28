@@ -49,6 +49,8 @@ void test_mock_web_platform_targeted_coverage();
 void test_mock_web_request_targeted_coverage();
 void test_mock_web_response_targeted_coverage();
 void test_mock_auth_context_targeted_coverage();
+void test_ternary_operator_branches();
+void test_string_conversion_edge_cases();
 
 // Register all mock platform tests
 void register_mock_web_platform_tests();
