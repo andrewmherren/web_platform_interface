@@ -14,7 +14,9 @@
 #include "include/testing/test_mock_web_platform.h"
 #include "include/testing/test_mocks.h"
 #include "include/testing/test_route_variant_native.h"
+#include "include/testing/test_testing_platform_provider.h"
 #include "include/testing/test_testing_platform_provider_json.h"
+
 
 void setUp() {
   ArduinoFakeReset();
@@ -40,6 +42,8 @@ int main(int argc, char **argv) {
   register_web_module_interface_tests();
   register_web_platform_interface_tests();
   register_testing_platform_provider_json_tests();
+  register_testing_platform_provider_tests(); // Register testing platform
+                                              // provider tests
   register_mock_web_platform_tests(); // Register our new mock platform tests
 
   UNITY_END();
@@ -62,6 +66,8 @@ void setup() {
   register_web_module_interface_tests();
   register_web_platform_interface_tests();
   register_testing_platform_provider_json_tests();
+  register_testing_platform_provider_tests(); // Register testing platform
+                                              // provider tests
   register_mock_web_platform_tests(); // Register our new mock platform tests
 
   UNITY_END();

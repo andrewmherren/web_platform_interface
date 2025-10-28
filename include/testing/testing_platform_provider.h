@@ -50,10 +50,13 @@ public:
 
   void registerModule(const String &basePath, IWebModule *module) override {
     registeredModules.push_back(std::make_pair(basePath, module));
-    // Add routes from module to mock route count
-    auto httpRoutes = module->getHttpRoutes();
-    auto httpsRoutes = module->getHttpsRoutes();
-    routeCount += httpRoutes.size() + httpsRoutes.size();
+    // Add routes from module to mock route count (handle null modules
+    // gracefully)
+    if (module) {
+      auto httpRoutes = module->getHttpRoutes();
+      auto httpsRoutes = module->getHttpsRoutes();
+      routeCount += httpRoutes.size() + httpsRoutes.size();
+    }
   }
 
   void registerWebRoute(const String &path,
