@@ -62,6 +62,7 @@ jobs:
           find .pio/build/test_native -name "*.gcno" -exec gcov -b -l -p -c {} \;
           # Generate coverage.xml for src and include
           gcovr --xml-pretty \
+            --branches \
             --root $GITHUB_WORKSPACE \
             --object-directory .pio/build/test_native \
             --filter "src|include" \
