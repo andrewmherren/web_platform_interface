@@ -406,6 +406,47 @@ void test_mock_web_request() {
   TEST_ASSERT_EQUAL_STRING("192.168.1.1", req.getClientIp().c_str());
 }
 
+// Test specific ternary operator branches that are missing coverage
+void test_mock_web_request_ternary_operators() {
+  MockWebRequest req;
+
+  // Test line 114: mockParams.count(stdName) ?
+  // String(mockParams.at(stdName).c_str()) : String(""); First branch (count >
+  // 0) - already tested above
+  req.setParam("exists", "value");
+  TEST_ASSERT_EQUAL_STRING("value", req.getParam("exists").c_str());
+
+  // Second branch (count == 0) - key doesn't exist
+  TEST_ASSERT_EQUAL_STRING("", req.getParam("does_not_exist").c_str());
+
+  // Test line 128: mockHeaders.count(stdName) ?
+  // String(mockHeaders.at(stdName).c_str()) : String(""); First branch (count >
+  // 0)
+  req.setMockHeader("X-Test", "header_value");
+  TEST_ASSERT_EQUAL_STRING("header_value", req.getHeader("X-Test").c_str());
+
+  // Second branch (count == 0)
+  TEST_ASSERT_EQUAL_STRING("", req.getHeader("Missing-Header").c_str());
+
+  // Test line 136: mockJsonParams.count(stdName) ? mockJsonParams.at(stdName) :
+  // String(""); First branch (count > 0)
+  req.setJsonParam("json_key", "{\"data\": \"value\"}");
+  TEST_ASSERT_EQUAL_STRING("{\"data\": \"value\"}",
+                           req.getJsonParam("json_key").c_str());
+
+  // Second branch (count == 0)
+  TEST_ASSERT_EQUAL_STRING("", req.getJsonParam("missing_json_key").c_str());
+
+  // Test line 159: routePattern ? String(routePattern) : ""
+  // First branch (routePattern != nullptr)
+  req.setMatchedRoute("/test/{id}");
+  // Note: This is internal state, testing the setter logic
+
+  // Second branch (routePattern == nullptr)
+  req.setMatchedRoute(nullptr);
+  // Note: This tests the null pointer handling
+}
+
 // Test MockWebResponse constructor and methods (lines 176-177, 185-186,
 // 192-193, 197-198, 208-210)
 void test_mock_web_response() {
@@ -459,6 +500,36 @@ void test_mock_web_response() {
 
   res.markResponseSent();
   TEST_ASSERT_TRUE(res.isResponseSent());
+}
+
+// Test specific ternary operators in MockWebResponse
+void test_mock_web_response_ternary_operators() {
+  MockWebResponse res;
+
+  // Test line 208: mockHeaders.count(stdName) ?
+  // String(mockHeaders.at(stdName).c_str()) : String(""); First branch (count >
+  // 0) - header exists
+  res.setHeader("Custom-Header", "custom_value");
+  TEST_ASSERT_EQUAL_STRING("custom_value",
+                           res.getHeader("Custom-Header").c_str());
+
+  // Second branch (count == 0) - header doesn't exist
+  TEST_ASSERT_EQUAL_STRING("", res.getHeader("Non-Existent-Header").c_str());
+
+  // Test multiple headers to ensure both branches work reliably
+  res.setHeader("Header1", "value1");
+  res.setHeader("Header2", "value2");
+  res.setHeader("Header3", "value3");
+
+  // Test existing headers (first branch)
+  TEST_ASSERT_EQUAL_STRING("value1", res.getHeader("Header1").c_str());
+  TEST_ASSERT_EQUAL_STRING("value2", res.getHeader("Header2").c_str());
+  TEST_ASSERT_EQUAL_STRING("value3", res.getHeader("Header3").c_str());
+
+  // Test non-existing headers (second branch)
+  TEST_ASSERT_EQUAL_STRING("", res.getHeader("Header4").c_str());
+  TEST_ASSERT_EQUAL_STRING("", res.getHeader("Missing").c_str());
+  TEST_ASSERT_EQUAL_STRING("", res.getHeader("").c_str()); // Empty header name
 }
 
 // Test Authentication handling in MockWebRequest (lines 96-97)
@@ -978,7 +1049,9 @@ void register_mock_web_platform_tests() {
   RUN_TEST(test_mock_web_platform_callbacks);
   RUN_TEST(test_mock_web_platform_provider);
   RUN_TEST(test_mock_web_request);
+  RUN_TEST(test_mock_web_request_ternary_operators);
   RUN_TEST(test_mock_web_response);
+  RUN_TEST(test_mock_web_response_ternary_operators);
   RUN_TEST(test_mock_web_request_auth);
   RUN_TEST(test_mock_web_platform_params);
 
