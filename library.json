@@ -22,7 +22,9 @@
   ],
   "license": "MIT",
   "homepage": "https://github.com/andrewmherren",
-  "frameworks": "*",
+  "frameworks": [
+    "arduino"
+  ],
   "platforms": [
     "espressif32"
   ],
