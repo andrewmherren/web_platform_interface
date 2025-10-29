@@ -18,6 +18,11 @@
 #include <interface/web_response.h>
 #include <vector>
 
+// Testing utilities (only include in test builds)
+#ifdef UNITY_INCLUDE_CONFIG_H
+#include <testing/test_utilities.h>
+#endif
+
 // Forward declarations
 class IWebModule;
 
