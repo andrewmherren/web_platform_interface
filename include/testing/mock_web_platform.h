@@ -59,34 +59,34 @@ struct httpd_req;
 
 // Note: OpenAPIFactory is provided by openapi_factory.h
 
-// Enhanced mock classes that provide the same interface as
-// WebRequest/WebResponse Using composition pattern to avoid complex inheritance
-// issues in testing
+// Safe mock classes with composition pattern
+// These provide compatible interfaces without dangerous casting
 
 class MockWebRequest {
 private:
   std::map<std::string, std::string> mockParams;
-  std::string mockBody;
-  std::string mockPath;
+  String mockBody;
+  String mockPath;
   WebModule::Method mockMethod = WebModule::WM_GET;
   AuthContext mockAuthCtx;
   std::map<std::string, std::string> mockHeaders;
-  std::string mockClientIp = "127.0.0.1";
+  String mockClientIp = "127.0.0.1";
+  std::map<std::string, String> mockJsonParams;
+  String mockMatchedRoutePattern;
+  String mockModuleBasePath;
 
 public:
-  // Constructor matching the interface needed by tests
-  MockWebRequest(const String &path = "/") {
-    mockPath = std::string(path.c_str());
-  }
+  // Constructor
+  MockWebRequest(const String &path = "/") { mockPath = path; }
 
   // Test setup methods
-  void setParam(const std::string &name, const std::string &value) {
-    mockParams[name] = value;
+  void setParam(const String &name, const String &value) {
+    mockParams[std::string(name.c_str())] = std::string(value.c_str());
   }
 
-  void setBody(const std::string &b) { mockBody = b; }
+  void setBody(const String &b) { mockBody = b; }
 
-  void setPath(const String &path) { mockPath = std::string(path.c_str()); }
+  void setPath(const String &path) { mockPath = path; }
 
   void setMethod(WebModule::Method method) { mockMethod = method; }
 
@@ -103,16 +103,22 @@ public:
     mockHeaders[std::string(name.c_str())] = std::string(value.c_str());
   }
 
-  // Interface methods matching WebRequest
+  void setJsonParam(const String &name, const String &value) {
+    mockJsonParams[std::string(name.c_str())] = value;
+  }
+
+  void setClientIp(const String &ip) { mockClientIp = ip; }
+
+  // WebRequest-compatible interface methods
   String getParam(const String &name) const {
     std::string stdName = name.c_str();
     return mockParams.count(stdName) ? String(mockParams.at(stdName).c_str())
                                      : String("");
   }
 
-  String getBody() const { return String(mockBody.c_str()); }
+  String getBody() const { return mockBody; }
 
-  String getPath() const { return String(mockPath.c_str()); }
+  String getPath() const { return mockPath; }
 
   WebModule::Method getMethod() const { return mockMethod; }
 
@@ -124,10 +130,37 @@ public:
                                       : String("");
   }
 
-  String getClientIp() const { return String(mockClientIp.c_str()); }
+  String getClientIp() const { return mockClientIp; }
 
-  // For modules that need to set auth context
+  String getJsonParam(const String &name) const {
+    std::string stdName = name.c_str();
+    return mockJsonParams.count(stdName) ? mockJsonParams.at(stdName)
+                                         : String("");
+  }
+
+  String getRouteParameter(const String &paramName) const {
+    // Mock implementation - could be enhanced for specific tests
+    return getParam(paramName);
+  }
+
+  std::map<String, String> getAllParams() const {
+    std::map<String, String> result;
+    for (const auto &pair : mockParams) {
+      result[String(pair.first.c_str())] = String(pair.second.c_str());
+    }
+    return result;
+  }
+
+  String getModuleBasePath() const { return mockModuleBasePath; }
+
+  // Additional methods for testing
   void setAuthContext(const AuthContext &context) { mockAuthCtx = context; }
+  void setMatchedRoute(const char *routePattern) {
+    mockMatchedRoutePattern = routePattern ? String(routePattern) : "";
+  }
+  void setModuleBasePath(const String &basePath) {
+    mockModuleBasePath = basePath;
+  }
 };
 
 class MockWebResponse {
@@ -136,11 +169,13 @@ private:
   String mockContentType = "text/html";
   int mockStatusCode = 200;
   std::map<std::string, std::string> mockHeaders;
+  bool mockHeadersSent = false;
+  bool mockResponseSent = false;
 
 public:
   MockWebResponse() {}
 
-  // Interface methods matching WebResponse
+  // WebResponse-compatible interface methods
   void setContent(const String &c, const String &ct = "text/html") {
     mockContent = c;
     mockContentType = ct;
@@ -165,9 +200,9 @@ public:
   // Testing accessor methods
   String getContent() const { return mockContent; }
 
-  String getContentType() const { return mockContentType; }
+  String getMimeType() const { return mockContentType; }
 
-  size_t getContentLength() const { return mockContent.length(); }
+  String getContentType() const { return mockContentType; }
 
   String getHeader(const String &name) const {
     std::string stdName = name.c_str();
@@ -177,19 +212,56 @@ public:
 
   int getStatusCode() const { return mockStatusCode; }
 
-  String getMimeType() const { return mockContentType; }
+  size_t getContentLength() const { return mockContent.length(); }
+
+  bool isHeadersSent() const { return mockHeadersSent; }
+  bool isResponseSent() const { return mockResponseSent; }
+
+  // Mock-specific methods for testing
+  void markHeadersSent() { mockHeadersSent = true; }
+  void markResponseSent() { mockResponseSent = true; }
 };
 
-// Helper casting functions for tests that need WebRequest/WebResponse
-// references These use reinterpret_cast which is safe in testing context since
-// MockWebRequest/MockWebResponse have compatible memory layouts and interface
-// methods
-inline WebRequest &asMockWebRequest(MockWebRequest &mockReq) {
-  return reinterpret_cast<WebRequest &>(mockReq);
+// SAFE ALTERNATIVE: Instead of dangerous casting, use template functions
+// that work directly with mock objects. Most tests should use
+// MockWebRequest/MockWebResponse directly.
+
+// For code that absolutely needs WebRequest/WebResponse interfaces,
+// create wrapper functions that call the methods directly:
+template <typename Handler>
+auto callWithMockRequest(MockWebRequest &mockReq, Handler handler)
+    -> decltype(handler(mockReq)) {
+  return handler(mockReq);
 }
 
-inline WebResponse &asMockWebResponse(MockWebResponse &mockRes) {
-  return reinterpret_cast<WebResponse &>(mockRes);
+template <typename Handler>
+auto callWithMockResponse(MockWebResponse &mockRes, Handler handler)
+    -> decltype(handler(mockRes)) {
+  return handler(mockRes);
+}
+
+// SAFE ALTERNATIVES TO CASTING - DO NOT USE CASTING AT ALL
+
+// These wrappers allow tests to access the functionality without dangerous
+// casts
+
+// For operations that need both request and response
+template <typename Function>
+void runTestOperation(MockWebRequest &req, MockWebResponse &res,
+                      Function operation) {
+  operation(req, res);
+}
+
+// For request operations
+template <typename Function>
+void runRequestOperation(MockWebRequest &req, Function operation) {
+  operation(req);
+}
+
+// For response operations
+template <typename Function>
+void runResponseOperation(MockWebResponse &res, Function operation) {
+  operation(res);
 }
 
 // Feature detection for testing - using constexpr for type safety
