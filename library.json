@@ -2,6 +2,9 @@
   "name": "web_platform_interface",
   "version": "0.2.0",
   "description": "Shared interface and testing mocks for Web Platform modules",
+  "build": {
+    "includeDir": "include"
+  },
   "keywords": [
     "interface",
     "testing",
@@ -22,9 +25,7 @@
   ],
   "license": "MIT",
   "homepage": "https://github.com/andrewmherren",
-  "frameworks": [
-    "arduino"
-  ],
+  "frameworks": "*",
   "platforms": [
     "espressif32"
   ],
