@@ -1,7 +1,6 @@
 #include <ArduinoFake.h>
 #include <unity.h>
 
-#include "include/test_helpers.h"
 // Include all test header files
 #include "include/interface/test_core_types.h"
 #include "include/interface/test_string_compat.h"
@@ -14,16 +13,15 @@
 #include "include/testing/test_mock_web_platform.h"
 #include "include/testing/test_mocks.h"
 #include "include/testing/test_route_variant_native.h"
+#include "include/testing/test_test_utilities.h"
 #include "include/testing/test_testing_platform_provider.h"
 #include "include/testing/test_testing_platform_provider_json.h"
 
+void setUp() { ArduinoFakeReset(); }
 
-void setUp() {
-  ArduinoFakeReset();
-  setUpCommon();
+void tearDown() {
+  // Clean teardown - nothing needed currently
 }
-
-void tearDown() { tearDownCommon(); }
 
 #ifdef NATIVE_PLATFORM
 int main(int argc, char **argv) {
