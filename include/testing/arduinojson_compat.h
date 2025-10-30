@@ -12,46 +12,8 @@
 #include <ArduinoJson.h>
 #include <string>
 
-// We need to inject our custom converters into ArduinoJson's namespace
-// This must be done before ArduinoJson processes the types
-namespace ArduinoJson {
-namespace ARDUINOJSON_VERSION_NAMESPACE {
-
-// Forward declare detail namespace
-namespace detail {
-// We'll specialize IsString for String type
-template <class T> struct IsString;
-struct true_type {
-  static const bool value = true;
-};
-} // namespace detail
-
-// Custom converter for ArduinoFake String to work with ArduinoJson
-// This addresses the missing 'write' method in ArduinoFake String
-template <> struct Converter<String> {
-  static void toJson(const String &src, JsonVariant dst) {
-    // Convert String to const char* for ArduinoJson
-    dst.set(src.c_str());
-  }
-
-  static String fromJson(JsonVariantConst src) {
-    // Convert from JSON back to String
-    if (src.is<const char *>()) {
-      return String(src.as<const char *>());
-    }
-    return String("");
-  }
-
-  static bool checkJson(JsonVariantConst src) { return src.is<const char *>(); }
-};
-
-// Also provide a specialization for detecting String as a string type
-namespace detail {
-template <> struct IsString<String> : true_type {};
-} // namespace detail
-
-} // namespace ARDUINOJSON_VERSION_NAMESPACE
-} // namespace ArduinoJson
+// Simple, non-invasive approach to ArduinoJson compatibility
+// Instead of modifying ArduinoJson internals, provide helper utilities
 
 // Extend ArduinoFake String with write method for ArduinoJson compatibility
 // We can't modify ArduinoFake directly, but we can provide helper functions
@@ -89,6 +51,29 @@ inline String getJsonString(JsonObjectConst obj, const char *key,
 // Convenience macros for JSON operations in native tests
 #define JSON_SET_STRING(obj, key, str) obj[key] = (str).c_str()
 #define JSON_GET_STRING(obj, key) String((obj)[key].as<const char *>())
+
+// Safe assignment helper that works in both Arduino and native
+inline void assignStringToJson(JsonObject &obj, const char *key,
+                               const String &value) {
+  obj[key] = value.c_str();
+}
+
+// Helper macros for cross-platform String assignment to JSON
+#define JSON_ASSIGN_STRING(obj, key, str)                                      \
+  NativeJsonCompat::assignStringToJson(obj, key, str)
+#define JSON_SERIALIZE_TO_STRING(doc)                                          \
+  NativeJsonCompat::serializeJsonToString(doc)
+
+#else // Arduino environment
+
+// In Arduino environment, regular assignment works
+#define JSON_ASSIGN_STRING(obj, key, str) (obj)[key] = (str)
+#define JSON_SERIALIZE_TO_STRING(doc)                                          \
+  ([&]() {                                                                     \
+    String result;                                                             \
+    serializeJson(doc, result);                                                \
+    return result;                                                             \
+  }())
 
 #endif // NATIVE_PLATFORM
 
