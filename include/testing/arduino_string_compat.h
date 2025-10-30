@@ -3,19 +3,23 @@
 
 #ifdef NATIVE_PLATFORM
 
-// We need to add the isEmpty() method to String for native testing
-// This approach uses a template specialization to add the method
+// Arduino String compatibility for native testing
+// Instead of macros, provide utility functions
 class String;
 
 namespace ArduinoStringCompat {
-    // Helper method to check if a String is empty in native environment
-    inline bool isEmpty(const String& str) {
-        return str.length() == 0;
-    }
-}
+// Helper method to check if a String is empty in native environment
+inline bool isEmpty(const String &str) { return str.length() == 0; }
 
-// Patch the String class with isEmpty() method
-#define isEmpty() ArduinoStringCompat::isEmpty(*this)
+// Helper to convert to std::string for ArduinoJson compatibility
+inline std::string toCStr(const String &str) {
+  return std::string(str.c_str());
+}
+} // namespace ArduinoStringCompat
+
+// For code that uses str.isEmpty(), provide a function-based alternative
+// Don't use macros as they cause parsing issues
+#define STRING_IS_EMPTY(str) ArduinoStringCompat::isEmpty(str)
 
 #endif // NATIVE_PLATFORM
 

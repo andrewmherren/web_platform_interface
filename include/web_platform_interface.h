@@ -25,9 +25,7 @@
 
 // Native platform testing support
 #ifdef NATIVE_PLATFORM
-#include <testing/arduinojson_compat.h>
 #include <testing/native_platform_abstraction.h>
-
 #endif
 
 // Forward declarations
