@@ -14,9 +14,6 @@
 
 // Simple, non-invasive approach to ArduinoJson compatibility
 // Instead of modifying ArduinoJson internals, provide helper utilities
-
-// Extend ArduinoFake String with write method for ArduinoJson compatibility
-// We can't modify ArduinoFake directly, but we can provide helper functions
 namespace NativeJsonCompat {
 
 // Helper function to serialize JSON to String in native environment
@@ -46,7 +43,6 @@ inline String getJsonString(JsonObjectConst obj, const char *key,
   }
   return defaultValue;
 }
-} // namespace NativeJsonCompat
 
 // Convenience macros for JSON operations in native tests
 #define JSON_SET_STRING(obj, key, str) obj[key] = (str).c_str()
@@ -57,6 +53,8 @@ inline void assignStringToJson(JsonObject &obj, const char *key,
                                const String &value) {
   obj[key] = value.c_str();
 }
+
+} // namespace NativeJsonCompat
 
 // Helper macros for cross-platform String assignment to JSON
 #define JSON_ASSIGN_STRING(obj, key, str)                                      \
