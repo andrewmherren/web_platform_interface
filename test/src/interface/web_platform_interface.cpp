@@ -1,11 +1,10 @@
-#include "../../include/interface/test_web_platform_interface.h"
+#include "../../include/interface/web_platform_interface.h"
 #include <ArduinoFake.h>
 #include <ArduinoJson.h>
 #include <unity.h>
 #include <web_platform_interface.h>
 
 // Include mock infrastructure
-#include <interface/string_compat.h>
 #include <testing/mock_web_platform.h>
 #include <testing/testing_platform_provider.h>
 

@@ -1,4 +1,4 @@
-#include "../../include/interface/test_web_module_types.h"
+#include "../../include/interface/web_module_types.h"
 #include <interface/web_module_types.h>
 #include <unity.h>
 

@@ -1,4 +1,4 @@
-#include "../../include/testing/test_testing_platform_provider.h"
+#include "../../include/testing/testing_platform_provider.h"
 #include <ArduinoFake.h>
 #include <testing/testing_platform_provider.h>
 #include <unity.h>

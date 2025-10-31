@@ -1,7 +1,6 @@
-#include "../../include/testing/test_testing_platform_provider_json.h"
+#include "../../include/testing/testing_platform_provider_json.h"
 #include <ArduinoFake.h>
 #include <ArduinoJson.h>
-#include <interface/string_compat.h>
 #include <testing/testing_platform_provider.h>
 #include <unity.h>
 #include <web_platform_interface.h>

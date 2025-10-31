@@ -106,10 +106,11 @@ public:
     builder(root);
 
     // Serialize to string
-    std::string jsonString = StringCompat::serializeJsonToStdString(doc);
+    std::string jsonString;
+    serializeJson(doc, jsonString);
 
     // Set content
-    res.setContent(toArduinoString(jsonString), "application/json");
+    res.setContent(String(jsonString.c_str()), "application/json");
   }
 
   void
@@ -121,10 +122,11 @@ public:
     builder(root);
 
     // Serialize to string
-    std::string jsonString = StringCompat::serializeJsonToStdString(doc);
+    std::string jsonString;
+    serializeJson(doc, jsonString);
 
     // Set content
-    res.setContent(toArduinoString(jsonString), "application/json");
+    res.setContent(String(jsonString.c_str()), "application/json");
   }
 
   // Test utility methods

@@ -1,4 +1,4 @@
-#include "../../include/interface/test_web_request.h"
+#include "../../include/interface/web_request.h"
 #include <testing/mock_web_platform.h>
 #include <unity.h>
 
@@ -224,9 +224,9 @@ void test_auth_context_construction() {
 
   // Test basic properties exist (these are part of the interface)
   TEST_ASSERT_FALSE(context.isAuthenticated);
-  TEST_ASSERT_TRUE(StringUtils::isStringEmpty(context.username));
-  TEST_ASSERT_TRUE(StringUtils::isStringEmpty(context.token));
-  TEST_ASSERT_TRUE(StringUtils::isStringEmpty(context.sessionId));
+  TEST_ASSERT_TRUE(context.username.length() == 0);
+  TEST_ASSERT_TRUE(context.token.length() == 0);
+  TEST_ASSERT_TRUE(context.sessionId.length() == 0);
   TEST_ASSERT_EQUAL(AuthType::NONE, context.authenticatedVia);
   TEST_ASSERT_EQUAL(0, context.authenticatedAt);
 }
@@ -276,9 +276,9 @@ void test_auth_context_helper_methods() {
   context.clear();
   TEST_ASSERT_FALSE(context.isAuthenticated);
   TEST_ASSERT_EQUAL(AuthType::NONE, context.authenticatedVia);
-  TEST_ASSERT_TRUE(StringUtils::isStringEmpty(context.sessionId));
-  TEST_ASSERT_TRUE(StringUtils::isStringEmpty(context.token));
-  TEST_ASSERT_TRUE(StringUtils::isStringEmpty(context.username));
+  TEST_ASSERT_TRUE(context.sessionId.length() == 0);
+  TEST_ASSERT_TRUE(context.token.length() == 0);
+  TEST_ASSERT_TRUE(context.username.length() == 0);
   TEST_ASSERT_EQUAL(0, context.authenticatedAt);
 }
 

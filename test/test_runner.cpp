@@ -2,20 +2,20 @@
 #include <unity.h>
 
 // Include all test header files
+#include "include/helpers/json_test_utils.h"
 #include "include/interface/test_core_types.h"
-#include "include/interface/test_string_compat.h"
-#include "include/interface/test_web_module_interface.h"
-#include "include/interface/test_web_module_types.h"
-#include "include/interface/test_web_platform_interface.h"
-#include "include/interface/test_web_request.h"
-#include "include/interface/test_web_response.h"
-#include "include/interface/utils/test_route_variant.h"
-#include "include/testing/test_mock_web_platform.h"
-#include "include/testing/test_mocks.h"
-#include "include/testing/test_route_variant_native.h"
-#include "include/testing/test_test_utilities.h"
-#include "include/testing/test_testing_platform_provider.h"
-#include "include/testing/test_testing_platform_provider_json.h"
+#include "include/interface/utils/route_variant.h"
+#include "include/interface/web_module_interface.h"
+#include "include/interface/web_module_types.h"
+#include "include/interface/web_platform_interface.h"
+#include "include/interface/web_request.h"
+#include "include/interface/web_response.h"
+#include "include/testing/mock_web_platform.h"
+#include "include/testing/mocks.h"
+#include "include/testing/route_variant_native.h"
+#include "include/testing/testing_platform_provider.h"
+#include "include/testing/testing_platform_provider_json.h"
+
 
 void setUp() { ArduinoFakeReset(); }
 
@@ -35,8 +35,7 @@ int main(int argc, char **argv) {
   register_web_response_tests();
   register_web_request_tests();
   register_mock_tests();
-  register_helper_tests();
-  register_string_compat_tests();
+  register_json_test_utils_tests();
   register_web_module_interface_tests();
   register_web_platform_interface_tests();
   register_testing_platform_provider_json_tests();
@@ -59,8 +58,7 @@ void setup() {
   register_web_response_tests();
   register_web_request_tests();
   register_mock_tests();
-  register_helper_tests();
-  register_string_compat_tests();
+  register_json_test_utils_tests();
   register_web_module_interface_tests();
   register_web_platform_interface_tests();
   register_testing_platform_provider_json_tests();

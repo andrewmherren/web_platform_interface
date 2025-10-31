@@ -28,9 +28,6 @@
 #include <interface/web_request.h>
 #include <interface/web_response.h>
 
-// Include string compatibility helpers
-#include "interface/string_compat.h"
-
 // Enhanced JsonResponseBuilder with native testing compatibility
 class JsonResponseBuilder {
 public:
@@ -45,10 +42,11 @@ public:
     builder(root);
 
     // Use std::string for native compatibility with ArduinoJson
-    std::string jsonString = StringCompat::serializeJsonToStdString(doc);
+    std::string jsonString;
+    serializeJson(doc, jsonString);
 
     // Convert to Arduino String for WebResponse
-    String arduinoString = toArduinoString(jsonString);
+    String arduinoString = String(jsonString.c_str());
     res.setContent(arduinoString, "application/json");
   }
 };

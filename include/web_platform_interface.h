@@ -18,11 +18,6 @@
 #include <interface/web_response.h>
 #include <vector>
 
-// Testing utilities (only include in test builds)
-#ifdef UNITY_INCLUDE_CONFIG_H
-#include <testing/test_utilities.h>
-#endif
-
 // Forward declarations
 class IWebModule;
 
@@ -91,7 +86,7 @@ public:
   virtual IWebPlatform &getPlatform() = 0;
 
   // Static instance for global access
-  static IWebPlatformProvider *instance;
+  inline static IWebPlatformProvider *instance = nullptr;
   static IWebPlatform &getPlatformInstance() {
     if (!instance) {
       // This should never happen in production - platform must be set

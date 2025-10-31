@@ -1,9 +1,8 @@
-#include "../../include/testing/test_mocks.h"
+#include "../../include/testing/mocks.h"
 #include <ArduinoFake.h>
 #include <unity.h>
 
 // Include mock infrastructure tests
-#include <interface/string_compat.h>
 #include <testing/mock_web_platform.h>
 
 // Test module base path functionality in MockWebRequest instead

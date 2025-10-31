@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <functional>
 #include <interface/auth_types.h>
+#include <interface/core/web_module_interface_core.h>
 #include <interface/debug_macros.h>
 #include <interface/openapi_factory.h>
 #include <interface/openapi_types.h>
@@ -28,6 +29,14 @@ struct WebRoute {
   String contentType; // Optional: "text/html", "application/json"
   String description; // Optional: Human-readable description
   AuthRequirements authRequirements; // Authentication requirements for route
+
+  // Helper method to convert to core representation
+  WebRouteCore toCore() const {
+    return WebRouteCore(path.c_str(),
+                        static_cast<WebModuleCore::Method>(method),
+                        nullptr, // Handler conversion handled separately
+                        contentType.c_str(), description.c_str());
+  }
 
 private:
   // Helper function to check for API path usage warning
