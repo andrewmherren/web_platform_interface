@@ -5,7 +5,7 @@
 #include <ArduinoJson.h>
 
 #ifdef NATIVE_PLATFORM
-#include <testing/arduino_string_compat.h>
+#include <arduino/arduino_string_compat.h>
 #endif
 
 /**

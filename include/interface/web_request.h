@@ -8,9 +8,11 @@
 
 #include <Arduino.h>
 #include <interface/auth_types.h>
+#include <interface/core/web_request_core.h>
 #include <interface/web_module_types.h>
 #include <interface/webserver_typedefs.h>
 #include <map>
+
 
 // Common HTTP headers that should be collected by web servers
 // Note: Using const char* (non-const array) for WebServer compatibility
@@ -28,6 +30,9 @@ struct httpd_req;
  */
 class WebRequest {
 private:
+  WebRequestCore core; // Pure C++ implementation
+
+  // Legacy Arduino String data - maintained for compatibility
   String path;
   WebModule::Method method;
   String body;
@@ -71,13 +76,21 @@ public:
   // Route matching (used by routing system)
   void setMatchedRoute(const char *routePattern) {
     matchedRoutePattern = routePattern ? String(routePattern) : "";
+    core.setMatchedRoute(routePattern ? std::string(routePattern) : "");
   }
 
   // Module context (used by template processing)
-  void setModuleBasePath(const String &basePath) { moduleBasePath = basePath; }
+  void setModuleBasePath(const String &basePath) {
+    moduleBasePath = basePath;
+    core.setModuleBasePath(basePath.c_str());
+  }
   String getModuleBasePath() const { return moduleBasePath; }
 
 private:
+  // Helper methods to sync Arduino String data with core
+  void syncToCore();
+  void syncFromCore();
+
   // Helper method to populate auth context for UI state (not authentication)
   void checkSessionInformation();
   void parseQueryParams(const String &query);
@@ -87,6 +100,10 @@ private:
   String urlDecode(const String &str);
 
   void parseClientIp(httpd_req *req);
+
+  // Access to core for testing (friend classes or protected access)
+public:
+  const WebRequestCore &getCore() const { return core; }
 };
 
 #endif // WEB_REQUEST_H

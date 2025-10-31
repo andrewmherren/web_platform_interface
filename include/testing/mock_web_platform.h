@@ -9,7 +9,7 @@
     "NATIVE_PLATFORM must be defined by the build system for native testing. Check your platformio.ini configuration."
 #endif
 
-#include "arduino_string_compat.h"
+#include "arduino/arduino_string_compat.h"
 #include <ArduinoFake.h>
 #include <ArduinoJson.h>
 #include <functional>
