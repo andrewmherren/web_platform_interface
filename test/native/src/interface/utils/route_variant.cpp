@@ -1,4 +1,5 @@
 #include "../../../include/interface/utils/route_variant.h"
+#include "../../../../native/include/test_handler_types.h"
 #include <ArduinoFake.h>
 #include <interface/utils/route_variant.h>
 #include <interface/web_module_interface.h>
@@ -6,13 +7,21 @@
 
 using namespace fakeit;
 
-// Test handlers
-static void testWebHandler(WebRequest &req, WebResponse &res) {
+// Test handlers - use conditional types for platform compatibility
+static void testWebHandler(TestRequest &req, TestResponse &res) {
+#if defined(NATIVE_PLATFORM)
   res.setContent("test", "text/plain");
+#else
+  res.setContent("test", "text/plain");
+#endif
 }
 
-static void testApiHandler(WebRequest &req, WebResponse &res) {
+static void testApiHandler(TestRequest &req, TestResponse &res) {
+#if defined(NATIVE_PLATFORM)
   res.setContent("api test", "application/json");
+#else
+  res.setContent("api test", "application/json");
+#endif
 }
 
 void test_route_variant_web_route_constructor() {

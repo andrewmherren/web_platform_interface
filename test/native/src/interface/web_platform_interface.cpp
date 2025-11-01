@@ -1,4 +1,5 @@
 #include "../../include/interface/web_platform_interface.h"
+#include "native/include/test_handler_types.h"
 #include <ArduinoFake.h>
 #include <ArduinoJson.h>
 #include <unity.h>
@@ -13,11 +14,11 @@ class TestWebModule : public IWebModule {
 public:
   std::vector<RouteVariant> getHttpRoutes() override {
     return {WebRoute("/test", WebModule::WM_GET,
-                     [](WebRequest &req, WebResponse &res) {
+                     [](TestRequest &req, TestResponse &res) {
                        res.setContent("Test Module Response", "text/plain");
                      }),
             ApiRoute("/api/test", WebModule::WM_GET,
-                     [](WebRequest &req, WebResponse &res) {
+                     [](TestRequest &req, TestResponse &res) {
                        res.setContent("{\"status\":\"ok\"}",
                                       "application/json");
                      },
@@ -26,7 +27,7 @@ public:
 
   std::vector<RouteVariant> getHttpsRoutes() override {
     return {WebRoute("/secure-test", WebModule::WM_GET,
-                     [](WebRequest &req, WebResponse &res) {
+                     [](TestRequest &req, TestResponse &res) {
                        res.setContent("Secure Test Response", "text/plain");
                      },
                      {AuthType::SESSION})};
@@ -53,9 +54,9 @@ void test_iwebplatform_lifecycle_operations() {
   TEST_ASSERT_TRUE(platform.isConnected());
 
   // Test base URL generation
-  String baseUrl = platform.getBaseUrl();
+  auto baseUrl = platform.getBaseUrl();
   TEST_ASSERT_TRUE(baseUrl.length() > 0);
-  TEST_ASSERT_TRUE(baseUrl.indexOf("mock-device") >= 0);
+  TEST_ASSERT_TRUE(baseUrl.indexOf("mock-device") != -1);
 
   // Test handle method (should not crash)
   platform.handle();
@@ -94,7 +95,7 @@ void test_iwebplatform_route_registration() {
   // Test web route registration
   platform.registerWebRoute(
       "/custom",
-      [](WebRequest &req, WebResponse &res) {
+      [](TestRequest &req, TestResponse &res) {
         res.setContent("Custom Response", "text/plain");
       },
       {AuthType::NONE}, WebModule::WM_GET);
@@ -104,7 +105,7 @@ void test_iwebplatform_route_registration() {
   // Test API route registration with authentication
   platform.registerApiRoute(
       "/api/custom",
-      [](WebRequest &req, WebResponse &res) {
+      [](TestRequest &req, TestResponse &res) {
         res.setContent("{\"message\":\"custom\"}", "application/json");
       },
       {AuthType::TOKEN}, WebModule::WM_POST, OpenAPIDocumentation());
@@ -140,39 +141,37 @@ void test_iwebplatform_json_response_utilities() {
 
   platform.begin("JsonTestDevice");
 
-  // Test MockWebResponse directly for basic functionality
-  MockWebResponse mockRes;
+  // Test TestResponse directly for basic functionality
+  TestResponse mockRes;
   mockRes.setContent("{\"test\":true}", "application/json");
 
-  TEST_ASSERT_EQUAL_STRING("application/json",
-                           mockRes.getContentType().c_str());
-  TEST_ASSERT_TRUE(mockRes.getContent().indexOf("test") >= 0);
+  TEST_ASSERT_EQUAL_STRING("application/json", mockRes.getMimeType().c_str());
+  TEST_ASSERT_TRUE(mockRes.getContent().find("test") != std::string::npos);
 
   // Test that we can call the platform's JSON creation methods
   // This tests that the MockWebPlatform implementation works
-  MockWebResponse jsonRes;
+  TestResponse jsonRes;
 
   // Use the newer, safer approach without any casting at all
   jsonRes.setContent("{\"success\":true,\"message\":\"Direct test\"}",
                      "application/json");
 
-  TEST_ASSERT_EQUAL_STRING("application/json",
-                           jsonRes.getContentType().c_str());
-  TEST_ASSERT_TRUE(jsonRes.getContent().indexOf("success") >= 0);
-  TEST_ASSERT_TRUE(jsonRes.getContent().indexOf("Direct test") >= 0);
+  TEST_ASSERT_EQUAL_STRING("application/json", jsonRes.getMimeType().c_str());
+  TEST_ASSERT_TRUE(jsonRes.getContent().find("success") != std::string::npos);
+  TEST_ASSERT_TRUE(jsonRes.getContent().find("Direct test") !=
+                   std::string::npos);
 
-  // Demonstrate the new template-based operation pattern
-  MockWebResponse templateRes;
-  runResponseOperation(templateRes, [](MockWebResponse &res) {
-    res.setContent("{\"template\":true}", "application/json");
-    res.setHeader("X-Test", "Template-Pattern");
-  });
+  // Demonstrate setting response content/headers directly
+  TestResponse templateRes;
+  templateRes.setContent("{\"template\":true}", "application/json");
+  templateRes.setHeader("X-Test", "Template-Pattern");
 
   TEST_ASSERT_EQUAL_STRING("application/json",
-                           templateRes.getContentType().c_str());
+                           templateRes.getMimeType().c_str());
   TEST_ASSERT_EQUAL_STRING("Template-Pattern",
                            templateRes.getHeader("X-Test").c_str());
-  TEST_ASSERT_TRUE(templateRes.getContent().indexOf("template") >= 0);
+  TEST_ASSERT_TRUE(templateRes.getContent().find("template") !=
+                   std::string::npos);
 
   // The platform's createJsonResponse methods are tested in the MockWebPlatform
   // implementation
@@ -253,12 +252,12 @@ void test_mock_web_platform_implementation() {
 
   // Test route counting
   mockPlatform.registerWebRoute(
-      "/test", [](WebRequest &req, WebResponse &res) {}, {AuthType::NONE},
+      "/test", [](TestRequest &req, TestResponse &res) {}, {AuthType::NONE},
       WebModule::WM_GET);
   TEST_ASSERT_EQUAL(1, mockPlatform.getRouteCount());
 
   mockPlatform.registerApiRoute(
-      "/api/test", [](WebRequest &req, WebResponse &res) {}, {AuthType::NONE},
+      "/api/test", [](TestRequest &req, TestResponse &res) {}, {AuthType::NONE},
       WebModule::WM_GET, OpenAPIDocumentation());
   TEST_ASSERT_EQUAL(2, mockPlatform.getRouteCount());
 
@@ -266,13 +265,13 @@ void test_mock_web_platform_implementation() {
   TEST_ASSERT_EQUAL(1, mockPlatform.getRouteCount());
 
   // Test base URL generation
-  String httpsUrl = mockPlatform.getBaseUrl();
-  TEST_ASSERT_TRUE(httpsUrl.indexOf("https://") == 0);
+  auto httpsUrl = mockPlatform.getBaseUrl();
+  TEST_ASSERT_TRUE(httpsUrl.indexOf("https://") != -1);
 
   mockPlatform.begin("TestDevice", false); // HTTP only
-  String httpUrl = mockPlatform.getBaseUrl();
-  TEST_ASSERT_TRUE(httpUrl.indexOf("http://") == 0);
-  TEST_ASSERT_FALSE(httpUrl.indexOf("https://") == 0);
+  auto httpUrl = mockPlatform.getBaseUrl();
+  TEST_ASSERT_TRUE(httpUrl.indexOf("http://") != -1);
+  TEST_ASSERT_TRUE(httpUrl.indexOf("https://") == -1);
 }
 
 // Global flag to track if we detected potential infinite loop
@@ -345,14 +344,14 @@ void test_integrated_platform_module_workflow() {
   // Add additional standalone routes
   platform.registerWebRoute(
       "/standalone",
-      [](WebRequest &req, WebResponse &res) {
+      [](TestRequest &req, TestResponse &res) {
         res.setContent("Standalone", "text/plain");
       },
       {AuthType::NONE}, WebModule::WM_GET);
 
   platform.registerApiRoute(
       "/api/standalone",
-      [](WebRequest &req, WebResponse &res) {
+      [](TestRequest &req, TestResponse &res) {
         res.setContent("{\"standalone\":true}", "application/json");
       },
       {AuthType::NONE}, WebModule::WM_GET, OpenAPIDocumentation());

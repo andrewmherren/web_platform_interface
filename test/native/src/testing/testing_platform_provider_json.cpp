@@ -1,4 +1,5 @@
 #include "../../include/testing/testing_platform_provider_json.h"
+#include "native/include/test_handler_types.h"
 #include <ArduinoFake.h>
 #include <ArduinoJson.h>
 #include <testing/testing_platform_provider.h>
@@ -10,8 +11,8 @@ void test_create_json_response() {
   // Create a MockWebPlatform instance
   MockWebPlatform mockPlatform;
 
-  // Create a WebResponse object
-  WebResponse response;
+  // Create a response object
+  TestResponse response;
 
   // Test the createJsonResponse method
   mockPlatform.createJsonResponse(response, [](JsonObject &root) {
@@ -22,13 +23,13 @@ void test_create_json_response() {
   });
 
   // Verify the response content
-  TEST_ASSERT_NOT_NULL(response.getContent());
-  String content = response.getContent();
+  auto content = response.getContent();
+  TEST_ASSERT_FALSE(content.empty());
   TEST_ASSERT_EQUAL_STRING("application/json", response.getMimeType().c_str());
 
   // Parse the JSON to validate its structure
   StaticJsonDocument<512> doc;
-  DeserializationError error = deserializeJson(doc, content.c_str());
+  DeserializationError error = deserializeJson(doc, content);
   TEST_ASSERT_FALSE(error);
 
   // Check JSON values
@@ -43,8 +44,8 @@ void test_create_json_array_response() {
   // Create a MockWebPlatform instance
   MockWebPlatform mockPlatform;
 
-  // Create a WebResponse object
-  WebResponse response;
+  // Create a response object
+  TestResponse response;
 
   // Test the createJsonArrayResponse method
   mockPlatform.createJsonArrayResponse(response, [](JsonArray &array) {
@@ -56,13 +57,13 @@ void test_create_json_array_response() {
   });
 
   // Verify the response content
-  TEST_ASSERT_NOT_NULL(response.getContent());
-  String content = response.getContent();
+  auto content = response.getContent();
+  TEST_ASSERT_FALSE(content.empty());
   TEST_ASSERT_EQUAL_STRING("application/json", response.getMimeType().c_str());
 
   // Parse the JSON to validate its structure
   StaticJsonDocument<512> doc;
-  DeserializationError error = deserializeJson(doc, content.c_str());
+  DeserializationError error = deserializeJson(doc, content);
   TEST_ASSERT_FALSE(error);
 
   // Check JSON array values
@@ -78,32 +79,34 @@ void test_json_responses_with_empty_handlers() {
 
   // Test createJsonResponse with empty handler
   {
-    WebResponse response;
+    TestResponse response;
     mockPlatform.createJsonResponse(response, [](JsonObject &obj) {
       // Empty handler - creates an empty JSON object
     });
 
-    TEST_ASSERT_NOT_NULL(response.getContent());
+    auto content = response.getContent();
+    TEST_ASSERT_FALSE(content.empty());
     TEST_ASSERT_EQUAL_STRING("application/json",
                              response.getMimeType().c_str());
 
     // Verify it's a valid empty JSON object
-    TEST_ASSERT_EQUAL_STRING("{}", response.getContent().c_str());
+    TEST_ASSERT_EQUAL_STRING("{}", content.c_str());
   }
 
   // Test createJsonArrayResponse with empty handler
   {
-    WebResponse response;
+    TestResponse response;
     mockPlatform.createJsonArrayResponse(response, [](JsonArray &arr) {
       // Empty handler - creates an empty JSON array
     });
 
-    TEST_ASSERT_NOT_NULL(response.getContent());
+    auto content = response.getContent();
+    TEST_ASSERT_FALSE(content.empty());
     TEST_ASSERT_EQUAL_STRING("application/json",
                              response.getMimeType().c_str());
 
     // Verify it's a valid empty JSON array
-    TEST_ASSERT_EQUAL_STRING("[]", response.getContent().c_str());
+    TEST_ASSERT_EQUAL_STRING("[]", content.c_str());
   }
 }
 
@@ -113,7 +116,7 @@ void test_create_complex_json_responses() {
 
   // Complex JSON object
   {
-    WebResponse response;
+    TestResponse response;
 
     mockPlatform.createJsonResponse(response, [](JsonObject &obj) {
       obj["string"] = "text";
@@ -128,11 +131,12 @@ void test_create_complex_json_responses() {
       nested["nestedKey"] = "nestedValue";
     });
 
-    TEST_ASSERT_NOT_NULL(response.getContent());
+    auto content = response.getContent();
+    TEST_ASSERT_FALSE(content.empty());
 
     // Verify complex JSON structure
     StaticJsonDocument<512> doc;
-    deserializeJson(doc, response.getContent().c_str());
+    deserializeJson(doc, content);
 
     TEST_ASSERT_EQUAL_STRING("text", doc["string"].as<const char *>());
     TEST_ASSERT_EQUAL(123, doc["number"].as<int>());
@@ -145,7 +149,7 @@ void test_create_complex_json_responses() {
 
   // Complex JSON array
   {
-    WebResponse response;
+    TestResponse response;
 
     mockPlatform.createJsonArrayResponse(response, [](JsonArray &arr) {
       arr.add("string");
@@ -159,11 +163,12 @@ void test_create_complex_json_responses() {
       nestedArr.add("nested");
     });
 
-    TEST_ASSERT_NOT_NULL(response.getContent());
+    auto content = response.getContent();
+    TEST_ASSERT_FALSE(content.empty());
 
     // Verify complex JSON array structure
     StaticJsonDocument<512> doc;
-    deserializeJson(doc, response.getContent().c_str());
+    deserializeJson(doc, content);
 
     TEST_ASSERT_EQUAL_STRING("string", doc[0].as<const char *>());
     TEST_ASSERT_EQUAL(456, doc[1].as<int>());

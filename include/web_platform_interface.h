@@ -4,7 +4,7 @@
 // Main include file for web_platform_interface library
 // This provides all the core interfaces needed by modules
 
-#include <Arduino.h>
+#include "interface/string_compat.h"
 #include <ArduinoJson.h>
 #include <functional>
 #include <interface/auth_types.h>
@@ -20,6 +20,15 @@
 
 // Forward declarations
 class IWebModule;
+
+// Conditional handler type for platform interface methods
+#if defined(ARDUINO) || defined(ESP_PLATFORM)
+// Arduino builds use wrapper-based handler
+using PlatformRouteHandler = WebModule::UnifiedRouteHandler;
+#else
+// Native builds use core-based handler
+using PlatformRouteHandler = WebModuleCore::UnifiedRouteHandler;
+#endif
 
 /**
  * Abstract interface for web platform implementations.
@@ -45,12 +54,12 @@ public:
 
   // Route registration - unified API
   virtual void
-  registerWebRoute(const String &path, WebModule::UnifiedRouteHandler handler,
+  registerWebRoute(const String &path, PlatformRouteHandler handler,
                    const AuthRequirements &auth = {AuthType::NONE},
                    WebModule::Method method = WebModule::WM_GET) = 0;
 
   virtual void registerApiRoute(
-      const String &path, WebModule::UnifiedRouteHandler handler,
+      const String &path, PlatformRouteHandler handler,
       const AuthRequirements &auth = {AuthType::NONE},
       WebModule::Method method = WebModule::WM_GET,
       const OpenAPIDocumentation &docs = OpenAPIDocumentation()) = 0;
@@ -66,7 +75,16 @@ public:
   virtual void addGlobalRedirect(const String &fromPath,
                                  const String &toPath) = 0;
 
-  // JSON response utilities
+  // JSON response utilities - conditional signatures for native vs Arduino
+#if defined(NATIVE_PLATFORM)
+  virtual void
+  createJsonResponse(WebResponseCore &res,
+                     std::function<void(JsonObject &)> builder) = 0;
+
+  virtual void
+  createJsonArrayResponse(WebResponseCore &res,
+                          std::function<void(JsonArray &)> builder) = 0;
+#else
   virtual void
   createJsonResponse(WebResponse &res,
                      std::function<void(JsonObject &)> builder) = 0;
@@ -74,6 +92,7 @@ public:
   virtual void
   createJsonArrayResponse(WebResponse &res,
                           std::function<void(JsonArray &)> builder) = 0;
+#endif
 };
 
 /**
@@ -89,12 +108,15 @@ public:
   inline static IWebPlatformProvider *instance = nullptr;
   static IWebPlatform &getPlatformInstance() {
     if (!instance) {
-      // This should never happen in production - platform must be set
-      // Use runtime error instead of static_assert for better testing
-      // compatibility
+#if defined(ARDUINO) || defined(ESP_PLATFORM)
+      // In embedded targets, print and halt
       Serial.println("FATAL: WebPlatform provider not initialized");
-      while (1)
-        ; // Halt execution
+      while (1) {
+      }
+#else
+      // In native builds, throw for test visibility
+      throw std::runtime_error("WebPlatform provider not initialized");
+#endif
     }
     return instance->getPlatform();
   }

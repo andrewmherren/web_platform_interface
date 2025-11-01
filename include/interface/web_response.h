@@ -1,7 +1,7 @@
 #ifndef WEB_RESPONSE_H
 #define WEB_RESPONSE_H
 
-#include <Arduino.h>
+#include "string_compat.h"
 #include <ArduinoJson.h>
 #include <interface/core/web_response_core.h>
 #include <interface/webserver_typedefs.h>

@@ -59,11 +59,10 @@ public:
     }
   }
 
-  void registerWebRoute(const String &path,
-                        WebModule::UnifiedRouteHandler handler,
+  void registerWebRoute(const String &path, PlatformRouteHandler handler,
                         const AuthRequirements &auth,
                         WebModule::Method method) override {
-    // Check for API path warning
+    // Check for API path warning (always enabled for tests)
     if (path.startsWith("/api/") || path.startsWith("api/")) {
       warnCallback(
           "WARNING: registerWebRoute() path '" + path +
@@ -73,8 +72,7 @@ public:
     routeCount++;
   }
 
-  void registerApiRoute(const String &path,
-                        WebModule::UnifiedRouteHandler handler,
+  void registerApiRoute(const String &path, PlatformRouteHandler handler,
                         const AuthRequirements &auth, WebModule::Method method,
                         const OpenAPIDocumentation &docs) override {
     routeCount++;
@@ -98,6 +96,40 @@ public:
     // Mock implementation
   }
 
+#if defined(NATIVE_PLATFORM)
+  // Native builds use core types directly
+  void createJsonResponse(WebResponseCore &res,
+                          std::function<void(JsonObject &)> builder) override {
+    // Create a document and call the builder
+    StaticJsonDocument<512> doc;
+    JsonObject root = doc.to<JsonObject>();
+    builder(root);
+
+    // Serialize to string
+    std::string jsonString;
+    serializeJson(doc, jsonString);
+
+    // Set content - use std::string directly
+    res.setContent(jsonString, "application/json");
+  }
+
+  void
+  createJsonArrayResponse(WebResponseCore &res,
+                          std::function<void(JsonArray &)> builder) override {
+    // Create a document and call the builder
+    StaticJsonDocument<512> doc;
+    JsonArray root = doc.to<JsonArray>();
+    builder(root);
+
+    // Serialize to string
+    std::string jsonString;
+    serializeJson(doc, jsonString);
+
+    // Set content - use std::string directly
+    res.setContent(jsonString, "application/json");
+  }
+#else
+  // Arduino builds use wrapper types
   void createJsonResponse(WebResponse &res,
                           std::function<void(JsonObject &)> builder) override {
     // Create a document and call the builder
@@ -109,7 +141,7 @@ public:
     std::string jsonString;
     serializeJson(doc, jsonString);
 
-    // Set content
+    // Set content - convert to String
     res.setContent(String(jsonString.c_str()), "application/json");
   }
 
@@ -125,9 +157,10 @@ public:
     std::string jsonString;
     serializeJson(doc, jsonString);
 
-    // Set content
+    // Set content - convert to String
     res.setContent(String(jsonString.c_str()), "application/json");
   }
+#endif
 
   // Test utility methods
   void setConnected(bool conn) { connected = conn; }

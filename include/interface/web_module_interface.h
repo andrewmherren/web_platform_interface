@@ -1,7 +1,7 @@
 #ifndef WEB_MODULE_INTERFACE_H
 #define WEB_MODULE_INTERFACE_H
 
-#include <Arduino.h>
+#include "string_compat.h"
 #include <functional>
 #include <interface/auth_types.h>
 #include <interface/core/web_module_interface_core.h>
@@ -14,6 +14,8 @@
 #include <interface/web_response.h>
 #include <vector>
 
+#include "core/auth_types_core.h"
+
 // Include the unified types definitions
 #include <interface/unified_types.h>
 
@@ -22,10 +24,21 @@ struct ApiRoute;
 
 // Web route structure - supports both legacy and unified handlers
 struct WebRoute {
-  String path;                     // Route path (e.g., "/status", "/config")
-  WebModule::Method method;        // HTTP method
+#if defined(ARDUINO) || defined(ESP_PLATFORM)
+  using HandlerType = WebModule::UnifiedRouteHandler;
+#else
+  using HandlerType = WebModuleCore::UnifiedRouteHandler;
+#endif
+
+  String path;              // Route path (e.g., "/status", "/config")
+  WebModule::Method method; // HTTP method
+#if defined(ARDUINO) || defined(ESP_PLATFORM)
   WebModule::RouteHandler handler; // Legacy function pointer (deprecated)
   WebModule::UnifiedRouteHandler unifiedHandler; // New unified handler
+#else
+  // Use core handler types for native builds
+  WebModuleCore::UnifiedRouteHandler unifiedHandler;
+#endif
   String contentType; // Optional: "text/html", "application/json"
   String description; // Optional: Human-readable description
   AuthRequirements authRequirements; // Authentication requirements for route
@@ -41,57 +54,58 @@ struct WebRoute {
 private:
   // Helper function to check for API path usage warning
   static void checkApiPathWarning(const String &p) {
+#if defined(ARDUINO) || defined(ESP_PLATFORM)
     if (p.startsWith("/api/") || p.startsWith("api/")) {
       WARN_PRINTLN(
           "WARNING: WebRoute path '" + p +
           "' starts with '/api/' or 'api/'. Consider using ApiRoute instead "
           "for better API documentation and path normalization.");
     }
+#else
+    // std::string version - no debug output in native builds
+    (void)p; // Suppress unused parameter warning
+#endif
   }
 
 public:
   // Constructors for unified handlers
-  WebRoute(const String &p, WebModule::Method m,
-           WebModule::UnifiedRouteHandler h)
+  WebRoute(const String &p, WebModule::Method m, HandlerType h)
       : path(p), method(m), unifiedHandler(h), contentType("text/html"),
         authRequirements({AuthType::NONE}) {
     checkApiPathWarning(p);
   }
 
-  WebRoute(const String &p, WebModule::Method m,
-           WebModule::UnifiedRouteHandler h, const String &ct)
+  WebRoute(const String &p, WebModule::Method m, HandlerType h,
+           const String &ct)
       : path(p), method(m), unifiedHandler(h), contentType(ct),
         authRequirements({AuthType::NONE}) {
     checkApiPathWarning(p);
   }
 
-  WebRoute(const String &p, WebModule::Method m,
-           WebModule::UnifiedRouteHandler h, const String &ct,
-           const String &desc)
+  WebRoute(const String &p, WebModule::Method m, HandlerType h,
+           const String &ct, const String &desc)
       : path(p), method(m), unifiedHandler(h), contentType(ct),
         description(desc), authRequirements({AuthType::NONE}) {
     checkApiPathWarning(p);
   }
 
   // Constructors with auth requirements
-  WebRoute(const String &p, WebModule::Method m,
-           WebModule::UnifiedRouteHandler h, const AuthRequirements &auth)
+  WebRoute(const String &p, WebModule::Method m, HandlerType h,
+           const AuthRequirements &auth)
       : path(p), method(m), unifiedHandler(h), contentType("text/html"),
         authRequirements(auth) {
     checkApiPathWarning(p);
   }
 
-  WebRoute(const String &p, WebModule::Method m,
-           WebModule::UnifiedRouteHandler h, const AuthRequirements &auth,
-           const String &ct)
+  WebRoute(const String &p, WebModule::Method m, HandlerType h,
+           const AuthRequirements &auth, const String &ct)
       : path(p), method(m), unifiedHandler(h), contentType(ct),
         authRequirements(auth) {
     checkApiPathWarning(p);
   }
 
-  WebRoute(const String &p, WebModule::Method m,
-           WebModule::UnifiedRouteHandler h, const AuthRequirements &auth,
-           const String &ct, const String &desc)
+  WebRoute(const String &p, WebModule::Method m, HandlerType h,
+           const AuthRequirements &auth, const String &ct, const String &desc)
       : path(p), method(m), unifiedHandler(h), contentType(ct),
         description(desc), authRequirements(auth) {
     checkApiPathWarning(p);
@@ -106,15 +120,14 @@ struct ApiRoute {
 private:
   // Helper function to normalize API paths by removing /api or api prefix
   static String normalizeApiPath(const String &path) {
-    // If starts with /api/, remove the /api part
+    // Always use Arduino String methods since NATIVE_PLATFORM uses
+    // ArduinoFake's String
     if (path.startsWith("/api/")) {
-      return path.substring(4); // Remove "/api" keeping the "/"
+      return path.substring(4);
     }
-    // If just "api", return "/"
     if (path.equals("api")) {
       return "/";
     }
-    // Otherwise return as-is, ensuring it has a leading slash
     if (path.startsWith("/")) {
       return path;
     }
@@ -123,48 +136,43 @@ private:
 
 public:
   // Constructors for unified handlers
-  ApiRoute(const String &p, WebModule::Method m,
-           WebModule::UnifiedRouteHandler h)
+  ApiRoute(const String &p, WebModule::Method m, WebRoute::HandlerType h)
       : webRoute(normalizeApiPath(p), m, h) {}
 
-  ApiRoute(const String &p, WebModule::Method m,
-           WebModule::UnifiedRouteHandler h, const String &ct)
+  ApiRoute(const String &p, WebModule::Method m, WebRoute::HandlerType h,
+           const String &ct)
       : webRoute(normalizeApiPath(p), m, h, ct) {}
 
-  ApiRoute(const String &p, WebModule::Method m,
-           WebModule::UnifiedRouteHandler h, const String &ct,
-           const String &desc)
+  ApiRoute(const String &p, WebModule::Method m, WebRoute::HandlerType h,
+           const String &ct, const String &desc)
       : webRoute(normalizeApiPath(p), m, h, ct, desc) {}
 
   // Constructors with auth requirements
-  ApiRoute(const String &p, WebModule::Method m,
-           WebModule::UnifiedRouteHandler h, const AuthRequirements &auth)
+  ApiRoute(const String &p, WebModule::Method m, WebRoute::HandlerType h,
+           const AuthRequirements &auth)
       : webRoute(normalizeApiPath(p), m, h, auth) {}
 
-  ApiRoute(const String &p, WebModule::Method m,
-           WebModule::UnifiedRouteHandler h, const AuthRequirements &auth,
-           const String &ct)
+  ApiRoute(const String &p, WebModule::Method m, WebRoute::HandlerType h,
+           const AuthRequirements &auth, const String &ct)
       : webRoute(normalizeApiPath(p), m, h, auth, ct) {}
 
-  ApiRoute(const String &p, WebModule::Method m,
-           WebModule::UnifiedRouteHandler h, const AuthRequirements &auth,
-           const String &ct, const String &desc)
+  ApiRoute(const String &p, WebModule::Method m, WebRoute::HandlerType h,
+           const AuthRequirements &auth, const String &ct, const String &desc)
       : webRoute(normalizeApiPath(p), m, h, auth, ct, desc) {}
 
   // Constructors with OpenAPI documentation
-  ApiRoute(const String &p, WebModule::Method m,
-           WebModule::UnifiedRouteHandler h,
+  ApiRoute(const String &p, WebModule::Method m, WebRoute::HandlerType h,
            const OpenAPIDocumentation &documentation)
       : webRoute(normalizeApiPath(p), m, h), docs(documentation) {}
 
-  ApiRoute(const String &p, WebModule::Method m,
-           WebModule::UnifiedRouteHandler h, const AuthRequirements &auth,
+  ApiRoute(const String &p, WebModule::Method m, WebRoute::HandlerType h,
+           const AuthRequirements &auth,
            const OpenAPIDocumentation &documentation)
       : webRoute(normalizeApiPath(p), m, h, auth), docs(documentation) {}
 
-  ApiRoute(const String &p, WebModule::Method m,
-           WebModule::UnifiedRouteHandler h, const AuthRequirements &auth,
-           const String &ct, const OpenAPIDocumentation &documentation)
+  ApiRoute(const String &p, WebModule::Method m, WebRoute::HandlerType h,
+           const AuthRequirements &auth, const String &ct,
+           const OpenAPIDocumentation &documentation)
       : webRoute(normalizeApiPath(p), m, h, auth, ct), docs(documentation) {}
 };
 

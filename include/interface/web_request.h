@@ -6,13 +6,13 @@
 #include <WString.h>
 #endif
 
-#include <Arduino.h>
+#include "core/auth_types_core.h"
+#include "string_compat.h"
 #include <interface/auth_types.h>
 #include <interface/core/web_request_core.h>
 #include <interface/web_module_types.h>
 #include <interface/webserver_typedefs.h>
 #include <map>
-
 
 // Common HTTP headers that should be collected by web servers
 // Note: Using const char* (non-const array) for WebServer compatibility

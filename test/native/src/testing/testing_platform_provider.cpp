@@ -1,4 +1,5 @@
 #include "../../include/testing/testing_platform_provider.h"
+#include "native/include/test_handler_types.h"
 #include <ArduinoFake.h>
 #include <testing/testing_platform_provider.h>
 #include <unity.h>
@@ -11,7 +12,7 @@ void test_mock_web_platform_callback_defaults() {
   // Test that default callbacks don't crash when called
   // This tests the default lambda functions on lines 22-24
   platform.registerWebRoute(
-      "/api/test", [](WebRequest &req, WebResponse &res) {}, {AuthType::NONE},
+      "/api/test", [](TestRequest &req, TestResponse &res) {}, {AuthType::NONE},
       WebModule::WM_GET);
 
   // The warning callback should have been invoked (with default no-op lambda)
@@ -51,7 +52,7 @@ void test_mock_web_platform_handle_conditions() {
   public:
     std::vector<RouteVariant> getHttpRoutes() override {
       return {WebRoute("/test", WebModule::WM_GET,
-                       [](WebRequest &req, WebResponse &res) {})};
+                       [](TestRequest &req, TestResponse &res) {})};
     }
     std::vector<RouteVariant> getHttpsRoutes() override { return {}; }
     String getModuleName() const override { return "TestModule"; }
@@ -97,9 +98,9 @@ void test_mock_web_platform_register_module_routes() {
   public:
     std::vector<RouteVariant> getHttpRoutes() override {
       return {WebRoute("/http1", WebModule::WM_GET,
-                       [](WebRequest &req, WebResponse &res) {}),
+                       [](TestRequest &req, TestResponse &res) {}),
               WebRoute("/http2", WebModule::WM_POST,
-                       [](WebRequest &req, WebResponse &res) {})};
+                       [](TestRequest &req, TestResponse &res) {})};
     }
     std::vector<RouteVariant> getHttpsRoutes() override { return {}; }
     String getModuleName() const override { return "HttpOnlyModule"; }
@@ -112,11 +113,11 @@ void test_mock_web_platform_register_module_routes() {
     std::vector<RouteVariant> getHttpRoutes() override { return {}; }
     std::vector<RouteVariant> getHttpsRoutes() override {
       return {WebRoute("/https1", WebModule::WM_GET,
-                       [](WebRequest &req, WebResponse &res) {}),
+                       [](TestRequest &req, TestResponse &res) {}),
               WebRoute("/https2", WebModule::WM_POST,
-                       [](WebRequest &req, WebResponse &res) {}),
+                       [](TestRequest &req, TestResponse &res) {}),
               WebRoute("/https3", WebModule::WM_PUT,
-                       [](WebRequest &req, WebResponse &res) {})};
+                       [](TestRequest &req, TestResponse &res) {})};
     }
     String getModuleName() const override { return "HttpsOnlyModule"; }
     void begin() override {}
@@ -127,11 +128,11 @@ void test_mock_web_platform_register_module_routes() {
   public:
     std::vector<RouteVariant> getHttpRoutes() override {
       return {WebRoute("/both_http", WebModule::WM_GET,
-                       [](WebRequest &req, WebResponse &res) {})};
+                       [](TestRequest &req, TestResponse &res) {})};
     }
     std::vector<RouteVariant> getHttpsRoutes() override {
       return {WebRoute("/both_https", WebModule::WM_GET,
-                       [](WebRequest &req, WebResponse &res) {})};
+                       [](TestRequest &req, TestResponse &res) {})};
     }
     String getModuleName() const override { return "BothRoutesModule"; }
     void begin() override {}
@@ -166,15 +167,15 @@ void test_mock_web_platform_api_path_warnings() {
   MockWebPlatform platform;
 
   bool warnCalled = false;
-  String warnMessage;
+  std::string warnMessage;
   platform.onWarn([&warnCalled, &warnMessage](const String &msg) {
     warnCalled = true;
-    warnMessage = msg;
+    warnMessage = msg.c_str();
   });
 
   // Test path that doesn't start with /api/ or api/ (line 83 - false condition)
   platform.registerWebRoute(
-      "/normal/path", [](WebRequest &req, WebResponse &res) {},
+      "/normal/path", [](TestRequest &req, TestResponse &res) {},
       {AuthType::NONE}, WebModule::WM_GET);
   TEST_ASSERT_FALSE(warnCalled);
 
@@ -184,10 +185,10 @@ void test_mock_web_platform_api_path_warnings() {
 
   // Test path that starts with /api/ (line 83 - first part true)
   platform.registerWebRoute(
-      "/api/test", [](WebRequest &req, WebResponse &res) {}, {AuthType::NONE},
+      "/api/test", [](TestRequest &req, TestResponse &res) {}, {AuthType::NONE},
       WebModule::WM_GET);
   TEST_ASSERT_TRUE(warnCalled);
-  TEST_ASSERT_TRUE(warnMessage.indexOf("/api/test") >= 0);
+  TEST_ASSERT_TRUE(warnMessage.find("/api/test") != std::string::npos);
 
   // Reset
   warnCalled = false;
@@ -195,10 +196,10 @@ void test_mock_web_platform_api_path_warnings() {
 
   // Test path that starts with api/ (line 83 - second part true)
   platform.registerWebRoute(
-      "api/test", [](WebRequest &req, WebResponse &res) {}, {AuthType::NONE},
+      "api/test", [](TestRequest &req, TestResponse &res) {}, {AuthType::NONE},
       WebModule::WM_GET);
   TEST_ASSERT_TRUE(warnCalled);
-  TEST_ASSERT_TRUE(warnMessage.indexOf("api/test") >= 0);
+  TEST_ASSERT_TRUE(warnMessage.find("api/test") != std::string::npos);
 }
 
 // Test disableRoute conditions (lines 102-103, 106)
@@ -213,7 +214,7 @@ void test_mock_web_platform_disable_route_conditions() {
 
   // Add a route to test the true condition
   platform.registerWebRoute(
-      "/test", [](WebRequest &req, WebResponse &res) {}, {AuthType::NONE},
+      "/test", [](TestRequest &req, TestResponse &res) {}, {AuthType::NONE},
       WebModule::WM_GET);
   TEST_ASSERT_EQUAL(1, platform.getRouteCount());
 
@@ -231,7 +232,7 @@ void test_testing_platform_provider_json_edge_cases() {
   MockWebPlatform platform;
 
   // Test createJsonResponse with builder that doesn't modify object (line 109)
-  WebResponse response1;
+  TestResponse response1;
   platform.createJsonResponse(response1, [](JsonObject &obj) {
     // Do nothing - test empty object serialization
   });
@@ -239,17 +240,17 @@ void test_testing_platform_provider_json_edge_cases() {
   TEST_ASSERT_EQUAL_STRING("application/json", response1.getMimeType().c_str());
 
   // Test createJsonResponse with builder that adds data (line 109)
-  WebResponse response2;
+  TestResponse response2;
   platform.createJsonResponse(response2, [](JsonObject &obj) {
     obj["key"] = "value";
     obj["number"] = 42;
   });
-  TEST_ASSERT_TRUE(response2.getContent().indexOf("value") >= 0);
-  TEST_ASSERT_TRUE(response2.getContent().indexOf("42") >= 0);
+  TEST_ASSERT_TRUE(response2.getContent().find("value") != std::string::npos);
+  TEST_ASSERT_TRUE(response2.getContent().find("42") != std::string::npos);
 
   // Test createJsonArrayResponse with builder that doesn't modify array (lines
   // 117-118, 121)
-  WebResponse response3;
+  TestResponse response3;
   platform.createJsonArrayResponse(response3, [](JsonArray &arr) {
     // Do nothing - test empty array serialization
   });
@@ -258,15 +259,15 @@ void test_testing_platform_provider_json_edge_cases() {
 
   // Test createJsonArrayResponse with builder that adds data (lines 117-118,
   // 121, 124)
-  WebResponse response4;
+  TestResponse response4;
   platform.createJsonArrayResponse(response4, [](JsonArray &arr) {
     JsonObject obj1 = arr.createNestedObject();
     obj1["name"] = "item1";
     JsonObject obj2 = arr.createNestedObject();
     obj2["name"] = "item2";
   });
-  TEST_ASSERT_TRUE(response4.getContent().indexOf("item1") >= 0);
-  TEST_ASSERT_TRUE(response4.getContent().indexOf("item2") >= 0);
+  TEST_ASSERT_TRUE(response4.getContent().find("item1") != std::string::npos);
+  TEST_ASSERT_TRUE(response4.getContent().find("item2") != std::string::npos);
 }
 
 // Test MockWebPlatformProvider constructor and unique_ptr initialization (line
@@ -354,26 +355,26 @@ void test_mock_web_platform_route_combinations() {
 
   // Test different auth types
   platform.registerWebRoute(
-      "/public", [](WebRequest &req, WebResponse &res) {}, {AuthType::NONE},
+      "/public", [](TestRequest &req, TestResponse &res) {}, {AuthType::NONE},
       WebModule::WM_GET);
   platform.registerWebRoute(
-      "/session", [](WebRequest &req, WebResponse &res) {}, {AuthType::SESSION},
-      WebModule::WM_POST);
+      "/session", [](TestRequest &req, TestResponse &res) {},
+      {AuthType::SESSION}, WebModule::WM_POST);
   platform.registerWebRoute(
-      "/token", [](WebRequest &req, WebResponse &res) {}, {AuthType::TOKEN},
+      "/token", [](TestRequest &req, TestResponse &res) {}, {AuthType::TOKEN},
       WebModule::WM_PUT);
   platform.registerWebRoute(
-      "/local", [](WebRequest &req, WebResponse &res) {},
+      "/local", [](TestRequest &req, TestResponse &res) {},
       {AuthType::LOCAL_ONLY}, WebModule::WM_DELETE);
 
   TEST_ASSERT_EQUAL(4, platform.getRouteCount());
 
   // Test API routes
   platform.registerApiRoute(
-      "/api/users", [](WebRequest &req, WebResponse &res) {}, {AuthType::TOKEN},
-      WebModule::WM_GET, OpenAPIDocumentation());
+      "/api/users", [](TestRequest &req, TestResponse &res) {},
+      {AuthType::TOKEN}, WebModule::WM_GET, OpenAPIDocumentation());
   platform.registerApiRoute(
-      "/api/posts", [](WebRequest &req, WebResponse &res) {},
+      "/api/posts", [](TestRequest &req, TestResponse &res) {},
       {AuthType::SESSION}, WebModule::WM_POST, OpenAPIDocumentation());
 
   TEST_ASSERT_EQUAL(6, platform.getRouteCount());
@@ -425,17 +426,17 @@ void test_mock_web_platform_json_builder_conditions() {
   MockWebPlatform platform;
 
   // Test createJsonResponse with builder that throws (edge case)
-  WebResponse response1;
+  TestResponse response1;
   bool builderCalled = false;
   platform.createJsonResponse(response1, [&builderCalled](JsonObject &obj) {
     builderCalled = true;
     obj["test"] = "value";
   });
   TEST_ASSERT_TRUE(builderCalled);
-  TEST_ASSERT_TRUE(response1.getContent().indexOf("test") >= 0);
+  TEST_ASSERT_TRUE(response1.getContent().find("test") != std::string::npos);
 
   // Test createJsonArrayResponse with builder that modifies array
-  WebResponse response2;
+  TestResponse response2;
   builderCalled = false;
   platform.createJsonArrayResponse(response2, [&builderCalled](JsonArray &arr) {
     builderCalled = true;
@@ -444,9 +445,9 @@ void test_mock_web_platform_json_builder_conditions() {
     arr.add(true);
   });
   TEST_ASSERT_TRUE(builderCalled);
-  TEST_ASSERT_TRUE(response2.getContent().indexOf("item1") >= 0);
-  TEST_ASSERT_TRUE(response2.getContent().indexOf("42") >= 0);
-  TEST_ASSERT_TRUE(response2.getContent().indexOf("true") >= 0);
+  TEST_ASSERT_TRUE(response2.getContent().find("item1") != std::string::npos);
+  TEST_ASSERT_TRUE(response2.getContent().find("42") != std::string::npos);
+  TEST_ASSERT_TRUE(response2.getContent().find("true") != std::string::npos);
 }
 
 // Test MockWebPlatformProvider edge cases
@@ -467,10 +468,10 @@ void test_mock_web_platform_provider_edge_cases() {
 
   // Test that they're truly independent
   platform1.registerWebRoute(
-      "/test1", [](WebRequest &req, WebResponse &res) {}, {AuthType::NONE},
+      "/test1", [](TestRequest &req, TestResponse &res) {}, {AuthType::NONE},
       WebModule::WM_GET);
   platform2.registerWebRoute(
-      "/test2", [](WebRequest &req, WebResponse &res) {}, {AuthType::NONE},
+      "/test2", [](TestRequest &req, TestResponse &res) {}, {AuthType::NONE},
       WebModule::WM_GET);
 
   TEST_ASSERT_EQUAL(1, platform1.getRouteCount());
@@ -498,7 +499,7 @@ void test_mock_web_platform_string_conversion() {
 
   // Test JSON response with special characters that need proper string
   // conversion
-  WebResponse response1;
+  TestResponse response1;
   platform.createJsonResponse(response1, [](JsonObject &obj) {
     obj["unicode"] = "\u00E9\u00F1\u00FC"; // é, ñ, ü
     obj["quotes"] = "He said \"Hello\"";
@@ -507,14 +508,14 @@ void test_mock_web_platform_string_conversion() {
   });
 
   // Verify the content was properly serialized and converted
-  String content = response1.getContent();
+  auto content = response1.getContent();
   TEST_ASSERT_TRUE(content.length() > 0);
-  TEST_ASSERT_TRUE(content.indexOf("unicode") >= 0);
-  TEST_ASSERT_TRUE(content.indexOf("quotes") >= 0);
+  TEST_ASSERT_TRUE(content.find("unicode") != std::string::npos);
+  TEST_ASSERT_TRUE(content.find("quotes") != std::string::npos);
   TEST_ASSERT_EQUAL_STRING("application/json", response1.getMimeType().c_str());
 
   // Test array response with special characters
-  WebResponse response2;
+  TestResponse response2;
   platform.createJsonArrayResponse(response2, [](JsonArray &arr) {
     arr.add("special: \"quoted\" text");
     arr.add("path\\with\\backslashes");
@@ -522,10 +523,10 @@ void test_mock_web_platform_string_conversion() {
     obj["key"] = "value with spaces and symbols: !@#$%";
   });
 
-  String arrayContent = response2.getContent();
+  auto arrayContent = response2.getContent();
   TEST_ASSERT_TRUE(arrayContent.length() > 0);
-  TEST_ASSERT_TRUE(arrayContent.startsWith("["));
-  TEST_ASSERT_TRUE(arrayContent.endsWith("]"));
+  TEST_ASSERT_TRUE(arrayContent.find("[") == 0);
+  TEST_ASSERT_TRUE(arrayContent.rfind("]") == arrayContent.length() - 1);
   TEST_ASSERT_EQUAL_STRING("application/json", response2.getMimeType().c_str());
 }
 
@@ -534,7 +535,7 @@ void test_mock_web_platform_json_serialization_coverage() {
   MockWebPlatform platform;
 
   // Test createJsonResponse with complex nested structure
-  WebResponse response1;
+  TestResponse response1;
   platform.createJsonResponse(response1, [](JsonObject &obj) {
     obj["string_field"] = "text";
     obj["number_field"] = 123;
@@ -548,16 +549,16 @@ void test_mock_web_platform_json_serialization_coverage() {
     nested["inner_bool"] = true;
   });
 
-  String content1 = response1.getContent();
-  TEST_ASSERT_TRUE(content1.indexOf("string_field") >= 0);
-  TEST_ASSERT_TRUE(content1.indexOf("123") >= 0);
-  TEST_ASSERT_TRUE(content1.indexOf("false") >= 0);
-  TEST_ASSERT_TRUE(content1.indexOf("array_field") >= 0);
-  TEST_ASSERT_TRUE(content1.indexOf("nested_field") >= 0);
+  auto content1 = response1.getContent();
+  TEST_ASSERT_TRUE(content1.find("string_field") != std::string::npos);
+  TEST_ASSERT_TRUE(content1.find("123") != std::string::npos);
+  TEST_ASSERT_TRUE(content1.find("false") != std::string::npos);
+  TEST_ASSERT_TRUE(content1.find("array_field") != std::string::npos);
+  TEST_ASSERT_TRUE(content1.find("nested_field") != std::string::npos);
   TEST_ASSERT_EQUAL_STRING("application/json", response1.getMimeType().c_str());
 
   // Test createJsonArrayResponse with complex array
-  WebResponse response2;
+  TestResponse response2;
   platform.createJsonArrayResponse(response2, [](JsonArray &arr) {
     // Add primitive types
     arr.add("string_item");
@@ -583,14 +584,14 @@ void test_mock_web_platform_json_serialization_coverage() {
     nestedArr.add("nested_item2");
   });
 
-  String content2 = response2.getContent();
-  TEST_ASSERT_TRUE(content2.indexOf("string_item") >= 0);
-  TEST_ASSERT_TRUE(content2.indexOf("999") >= 0);
-  TEST_ASSERT_TRUE(content2.indexOf("true") >= 0);
-  TEST_ASSERT_TRUE(content2.indexOf("false") >= 0);
-  TEST_ASSERT_TRUE(content2.indexOf("first") >= 0);
-  TEST_ASSERT_TRUE(content2.indexOf("second") >= 0);
-  TEST_ASSERT_TRUE(content2.indexOf("nested_item1") >= 0);
+  auto content2 = response2.getContent();
+  TEST_ASSERT_TRUE(content2.find("string_item") != std::string::npos);
+  TEST_ASSERT_TRUE(content2.find("999") != std::string::npos);
+  TEST_ASSERT_TRUE(content2.find("true") != std::string::npos);
+  TEST_ASSERT_TRUE(content2.find("false") != std::string::npos);
+  TEST_ASSERT_TRUE(content2.find("first") != std::string::npos);
+  TEST_ASSERT_TRUE(content2.find("second") != std::string::npos);
+  TEST_ASSERT_TRUE(content2.find("nested_item1") != std::string::npos);
   TEST_ASSERT_EQUAL_STRING("application/json", response2.getMimeType().c_str());
 }
 

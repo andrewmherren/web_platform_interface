@@ -1,4 +1,5 @@
 #include "../../include/interface/web_module_interface.h"
+#include "native/include/test_handler_types.h"
 #include <ArduinoFake.h>
 #include <ArduinoJson.h>
 #include <testing/testing_platform_provider.h>
@@ -12,7 +13,7 @@
 void test_web_route_full_constructors() {
   // Test basic constructor
   WebRoute route1("/test", WebModule::WM_GET,
-                  [](WebRequest &req, WebResponse &res) {
+                  [](TestRequest &req, TestResponse &res) {
                     res.setContent("Test", "text/plain");
                   });
   TEST_ASSERT_EQUAL_STRING("/test", route1.path.c_str());
@@ -26,7 +27,7 @@ void test_web_route_full_constructors() {
   // Test constructor with content type
   WebRoute route2(
       "/test2", WebModule::WM_POST,
-      [](WebRequest &req, WebResponse &res) {
+      [](TestRequest &req, TestResponse &res) {
         res.setContent("{\"test\":true}", "application/json");
       },
       "application/json");
@@ -37,7 +38,7 @@ void test_web_route_full_constructors() {
   // Test constructor with content type and description
   WebRoute route3(
       "/test3", WebModule::WM_PUT,
-      [](WebRequest &req, WebResponse &res) {
+      [](TestRequest &req, TestResponse &res) {
         res.setContent("Test 3", "text/plain");
       },
       "text/plain", "Test route 3");
@@ -48,7 +49,7 @@ void test_web_route_full_constructors() {
 
   // Test constructor with auth requirements
   WebRoute route4("/secure", WebModule::WM_GET,
-                  [](WebRequest &req, WebResponse &res) {
+                  [](TestRequest &req, TestResponse &res) {
                     res.setContent("Secure", "text/plain");
                   },
                   {AuthType::SESSION});
@@ -59,7 +60,7 @@ void test_web_route_full_constructors() {
   // Test constructor with auth requirements and content type
   WebRoute route5(
       "/secure2", WebModule::WM_POST,
-      [](WebRequest &req, WebResponse &res) {
+      [](TestRequest &req, TestResponse &res) {
         res.setContent("Secure 2", "text/plain");
       },
       {AuthType::TOKEN}, "text/plain");
@@ -72,7 +73,7 @@ void test_web_route_full_constructors() {
   // Test constructor with auth requirements, content type, and description
   WebRoute route6(
       "/secure3", WebModule::WM_DELETE,
-      [](WebRequest &req, WebResponse &res) {
+      [](TestRequest &req, TestResponse &res) {
         res.setContent("Secure 3", "text/plain");
       },
       {AuthType::LOCAL_ONLY}, "text/plain", "Secure route 3");
@@ -96,7 +97,7 @@ void test_api_route_openapi_docs() {
 
   // Create ApiRoute with OpenAPI docs
   ApiRoute route(
-      "/test", WebModule::WM_GET, [](WebRequest &req, WebResponse &res) {},
+      "/test", WebModule::WM_GET, [](TestRequest &req, TestResponse &res) {},
       docs);
 
   // Verify docs are stored correctly
@@ -105,11 +106,12 @@ void test_api_route_openapi_docs() {
                            route.docs.getDescription().c_str());
   TEST_ASSERT_EQUAL_STRING("testOperation",
                            route.docs.getOperationId().c_str());
-  TEST_ASSERT_TRUE(route.docs.getResponseSchema().indexOf("object") >= 0);
+  auto responseSchema = route.docs.getResponseSchema();
+  TEST_ASSERT_TRUE(responseSchema.indexOf("object") != -1);
 
   // Create ApiRoute with auth and OpenAPI docs
   ApiRoute secureRoute(
-      "/secure", WebModule::WM_POST, [](WebRequest &req, WebResponse &res) {},
+      "/secure", WebModule::WM_POST, [](TestRequest &req, TestResponse &res) {},
       {AuthType::TOKEN}, docs);
 
   // Verify both auth and docs are stored correctly
@@ -119,7 +121,7 @@ void test_api_route_openapi_docs() {
 
   // Create ApiRoute with auth, content type, and OpenAPI docs
   ApiRoute fullRoute(
-      "/full", WebModule::WM_PUT, [](WebRequest &req, WebResponse &res) {},
+      "/full", WebModule::WM_PUT, [](TestRequest &req, TestResponse &res) {},
       {AuthType::SESSION}, "application/json", docs);
 
   // Verify all components are stored correctly
@@ -152,14 +154,14 @@ public:
 
   std::vector<RouteVariant> getHttpRoutes() override {
     return {WebRoute("/module/http", WebModule::WM_GET,
-                     [](WebRequest &req, WebResponse &res) {
+                     [](TestRequest &req, TestResponse &res) {
                        res.setContent("HTTP Route", "text/plain");
                      })};
   }
 
   std::vector<RouteVariant> getHttpsRoutes() override {
     return {WebRoute("/module/https", WebModule::WM_GET,
-                     [](WebRequest &req, WebResponse &res) {
+                     [](TestRequest &req, TestResponse &res) {
                        res.setContent("HTTPS Route", "text/plain");
                      },
                      {AuthType::SESSION})};
@@ -167,7 +169,7 @@ public:
 
   std::vector<RouteVariant> getWebRoutes() override {
     return {WebRoute("/module/web", WebModule::WM_GET,
-                     [](WebRequest &req, WebResponse &res) {
+                     [](TestRequest &req, TestResponse &res) {
                        res.setContent("Common Route", "text/plain");
                      })};
   }
@@ -292,28 +294,28 @@ void test_web_module_with_config() {
 void test_auth_requirements_in_routes() {
   // Test public route (NONE)
   WebRoute publicRoute("/public", WebModule::WM_GET,
-                       [](WebRequest &req, WebResponse &res) {},
+                       [](TestRequest &req, TestResponse &res) {},
                        {AuthType::NONE});
   TEST_ASSERT_EQUAL(1, publicRoute.authRequirements.size());
   TEST_ASSERT_EQUAL(AuthType::NONE, publicRoute.authRequirements[0]);
 
   // Test session auth route
   WebRoute sessionRoute("/session", WebModule::WM_GET,
-                        [](WebRequest &req, WebResponse &res) {},
+                        [](TestRequest &req, TestResponse &res) {},
                         {AuthType::SESSION});
   TEST_ASSERT_EQUAL(1, sessionRoute.authRequirements.size());
   TEST_ASSERT_EQUAL(AuthType::SESSION, sessionRoute.authRequirements[0]);
 
   // Test token auth route
   WebRoute tokenRoute("/token", WebModule::WM_GET,
-                      [](WebRequest &req, WebResponse &res) {},
+                      [](TestRequest &req, TestResponse &res) {},
                       {AuthType::TOKEN});
   TEST_ASSERT_EQUAL(1, tokenRoute.authRequirements.size());
   TEST_ASSERT_EQUAL(AuthType::TOKEN, tokenRoute.authRequirements[0]);
 
   // Test multiple auth types (ANY of them can access)
   WebRoute multiAuthRoute("/multi-auth", WebModule::WM_GET,
-                          [](WebRequest &req, WebResponse &res) {},
+                          [](TestRequest &req, TestResponse &res) {},
                           {AuthType::SESSION, AuthType::TOKEN});
   TEST_ASSERT_EQUAL(2, multiAuthRoute.authRequirements.size());
   TEST_ASSERT_EQUAL(AuthType::SESSION, multiAuthRoute.authRequirements[0]);
@@ -321,7 +323,7 @@ void test_auth_requirements_in_routes() {
 
   // Test local-only route
   WebRoute localRoute("/local", WebModule::WM_GET,
-                      [](WebRequest &req, WebResponse &res) {},
+                      [](TestRequest &req, TestResponse &res) {},
                       {AuthType::LOCAL_ONLY});
   TEST_ASSERT_EQUAL(1, localRoute.authRequirements.size());
   TEST_ASSERT_EQUAL(AuthType::LOCAL_ONLY, localRoute.authRequirements[0]);
@@ -331,11 +333,11 @@ void test_auth_requirements_in_routes() {
 void test_route_variant_conversions() {
   // Create a WebRoute
   WebRoute webRoute("/web", WebModule::WM_GET,
-                    [](WebRequest &req, WebResponse &res) {});
+                    [](TestRequest &req, TestResponse &res) {});
 
   // Create an ApiRoute
   ApiRoute apiRoute("/api", WebModule::WM_POST,
-                    [](WebRequest &req, WebResponse &res) {});
+                    [](TestRequest &req, TestResponse &res) {});
 
   // Create RouteVariant instances
   RouteVariant webVariant(webRoute);
@@ -373,7 +375,7 @@ void test_basic_route_creation() {
 
   // Create a simple route with a standard path
   WebRoute normalRoute("/normal", WebModule::WM_GET,
-                       [](WebRequest &req, WebResponse &res) {});
+                       [](TestRequest &req, TestResponse &res) {});
   TEST_ASSERT_EQUAL_STRING("/normal", normalRoute.path.c_str());
 
   // Verify method is stored correctly
@@ -402,21 +404,21 @@ void test_api_path_warning() {
   // Set up warning capture to test line 36 in web_module_interface.h
   // where WARN_PRINTLN is called for API path warnings
   bool warningEmitted = false;
-  String capturedWarning = "";
+  std::string capturedWarning = "";
 
   mockPlatform.onWarn([&warningEmitted, &capturedWarning](const String &msg) {
     warningEmitted = true;
-    capturedWarning = msg;
+    capturedWarning = msg.c_str();
   });
 
   // Test registering a route with api path
   mockPlatform.registerWebRoute(
-      "/api/test", [](WebRequest &req, WebResponse &res) {}, {AuthType::NONE},
+      "/api/test", [](TestRequest &req, TestResponse &res) {}, {AuthType::NONE},
       WebModule::WM_GET);
 
   // Verify warning was emitted
   TEST_ASSERT_TRUE(warningEmitted);
-  TEST_ASSERT_TRUE(capturedWarning.indexOf("/api/") >= 0);
+  TEST_ASSERT_TRUE(capturedWarning.find("/api/") != std::string::npos);
 
   // Reset warning state
   warningEmitted = false;
@@ -424,12 +426,12 @@ void test_api_path_warning() {
 
   // Test with no leading slash - still an API path
   mockPlatform.registerWebRoute(
-      "api/test2", [](WebRequest &req, WebResponse &res) {}, {AuthType::NONE},
+      "api/test2", [](TestRequest &req, TestResponse &res) {}, {AuthType::NONE},
       WebModule::WM_GET);
 
   // Verify warning was emitted
   TEST_ASSERT_TRUE(warningEmitted);
-  TEST_ASSERT_TRUE(capturedWarning.indexOf("api/") >= 0);
+  TEST_ASSERT_TRUE(capturedWarning.find("api/") != std::string::npos);
 
   // Reset warning state
   warningEmitted = false;
@@ -437,7 +439,7 @@ void test_api_path_warning() {
 
   // Register a normal route (should not trigger warning)
   mockPlatform.registerWebRoute(
-      "/normal", [](WebRequest &req, WebResponse &res) {}, {AuthType::NONE},
+      "/normal", [](TestRequest &req, TestResponse &res) {}, {AuthType::NONE},
       WebModule::WM_GET);
 
   // Verify no warning was emitted

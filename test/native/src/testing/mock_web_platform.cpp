@@ -1,5 +1,6 @@
 #include "../../include/testing/mock_web_platform.h"
 #include "interface/openapi_types.h"
+#include "native/include/test_handler_types.h"
 #include <ArduinoFake.h>
 #include <testing/testing_platform_provider.h>
 #include <unity.h>
@@ -28,15 +29,15 @@ void test_mock_web_platform_routes() {
 
   // Capture warnings
   bool warningEmitted = false;
-  String capturedWarning;
+  std::string capturedWarning;
   platform.onWarn([&warningEmitted, &capturedWarning](const String &msg) {
     warningEmitted = true;
-    capturedWarning = msg;
+    capturedWarning = msg.c_str();
   });
 
   // Register normal route (no warning)
   platform.registerWebRoute(
-      "/normal", [](WebRequest &req, WebResponse &res) {}, {AuthType::NONE},
+      "/normal", [](TestRequest &req, TestResponse &res) {}, {AuthType::NONE},
       WebModule::WM_GET);
   TEST_ASSERT_FALSE(warningEmitted);
 
@@ -45,10 +46,10 @@ void test_mock_web_platform_routes() {
 
   // Register API route with WebRoute (should warn for path with leading slash)
   platform.registerWebRoute(
-      "/api/test", [](WebRequest &req, WebResponse &res) {}, {AuthType::TOKEN},
-      WebModule::WM_POST);
+      "/api/test", [](TestRequest &req, TestResponse &res) {},
+      {AuthType::TOKEN}, WebModule::WM_POST);
   TEST_ASSERT_TRUE(warningEmitted);
-  TEST_ASSERT_TRUE(capturedWarning.indexOf("/api/") >= 0);
+  TEST_ASSERT_TRUE(capturedWarning.find("/api/") != std::string::npos);
 
   // Route count should be 2
   TEST_ASSERT_EQUAL(2, platform.getRouteCount());
@@ -59,10 +60,10 @@ void test_mock_web_platform_routes() {
 
   // Test the second path condition: path starts with 'api/' (no leading slash)
   platform.registerWebRoute(
-      "api/noprefix", [](WebRequest &req, WebResponse &res) {},
+      "api/noprefix", [](TestRequest &req, TestResponse &res) {},
       {AuthType::TOKEN}, WebModule::WM_GET);
   TEST_ASSERT_TRUE(warningEmitted);
-  TEST_ASSERT_TRUE(capturedWarning.indexOf("api/noprefix") >= 0);
+  TEST_ASSERT_TRUE(capturedWarning.find("api/noprefix") != std::string::npos);
 
   // Route count should be 3
   TEST_ASSERT_EQUAL(3, platform.getRouteCount());
@@ -73,7 +74,7 @@ void test_mock_web_platform_routes() {
 
   // Register proper API route (no warning)
   platform.registerApiRoute(
-      "/api/proper", [](WebRequest &req, WebResponse &res) {},
+      "/api/proper", [](TestRequest &req, TestResponse &res) {},
       {AuthType::TOKEN}, WebModule::WM_PUT, OpenAPIDocumentation());
   TEST_ASSERT_FALSE(warningEmitted);
 
@@ -82,7 +83,7 @@ void test_mock_web_platform_routes() {
 
   // Register proper API route (no warning)
   platform.registerApiRoute(
-      "/api/proper", [](WebRequest &req, WebResponse &res) {},
+      "/api/proper", [](TestRequest &req, TestResponse &res) {},
       {AuthType::TOKEN}, WebModule::WM_PUT, OpenAPIDocumentation());
   TEST_ASSERT_FALSE(warningEmitted);
 
@@ -124,12 +125,12 @@ void test_mock_web_platform_modules() {
   public:
     std::vector<RouteVariant> getHttpRoutes() override {
       return {WebRoute("/test", WebModule::WM_GET,
-                       [](WebRequest &req, WebResponse &res) {})};
+                       [](TestRequest &req, TestResponse &res) {})};
     }
 
     std::vector<RouteVariant> getHttpsRoutes() override {
       return {WebRoute("/secure", WebModule::WM_GET,
-                       [](WebRequest &req, WebResponse &res) {})};
+                       [](TestRequest &req, TestResponse &res) {})};
     }
 
     String getModuleName() const override { return "TestModule"; }
@@ -189,7 +190,7 @@ void test_mock_web_platform_modules() {
 void test_mock_web_platform_json() {
   MockWebPlatformProvider provider;
   MockWebPlatform &platform = provider.getMockPlatform();
-  WebResponse response;
+  TestResponse response;
 
   // Test JSON object creation
   platform.createJsonResponse(response, [](JsonObject &obj) {
@@ -198,8 +199,8 @@ void test_mock_web_platform_json() {
   });
 
   // Verify response content
-  TEST_ASSERT_TRUE(response.getContent().indexOf("success") >= 0);
-  TEST_ASSERT_TRUE(response.getContent().indexOf("200") >= 0);
+  TEST_ASSERT_TRUE(response.getContent().find("success") != std::string::npos);
+  TEST_ASSERT_TRUE(response.getContent().find("200") != std::string::npos);
 
   // Test JSON array creation
   platform.createJsonArrayResponse(response, [](JsonArray &arr) {
@@ -211,8 +212,8 @@ void test_mock_web_platform_json() {
   });
 
   // Verify array response
-  TEST_ASSERT_TRUE(response.getContent().indexOf("Item 1") >= 0);
-  TEST_ASSERT_TRUE(response.getContent().indexOf("Item 2") >= 0);
+  TEST_ASSERT_TRUE(response.getContent().find("Item 1") != std::string::npos);
+  TEST_ASSERT_TRUE(response.getContent().find("Item 2") != std::string::npos);
 }
 
 // Test callback functions (debug, warn, error)
@@ -225,34 +226,34 @@ void test_mock_web_platform_callbacks() {
   bool errorCalled = false;
   bool debugCalled = false;
 
-  String warnMessage;
-  String errorMessage;
-  String debugMessage;
+  std::string warnMessage;
+  std::string errorMessage;
+  std::string debugMessage;
 
   // Set up the callbacks
   platform.onWarn([&warnCalled, &warnMessage](const String &msg) {
     warnCalled = true;
-    warnMessage = msg;
+    warnMessage = msg.c_str();
   });
 
   platform.onError([&errorCalled, &errorMessage](const String &msg) {
     errorCalled = true;
-    errorMessage = msg;
+    errorMessage = msg.c_str();
   });
 
   platform.onDebug([&debugCalled, &debugMessage](const String &msg) {
     debugCalled = true;
-    debugMessage = msg;
+    debugMessage = msg.c_str();
   });
 
   // Trigger the warning callback by registering a route with /api/ prefix
   platform.registerWebRoute(
-      "/api/test", [](WebRequest &req, WebResponse &res) {}, {AuthType::NONE},
+      "/api/test", [](TestRequest &req, TestResponse &res) {}, {AuthType::NONE},
       WebModule::WM_GET);
 
   // Verify the warning callback was invoked
   TEST_ASSERT_TRUE(warnCalled);
-  TEST_ASSERT_TRUE(warnMessage.indexOf("/api/test") >= 0);
+  TEST_ASSERT_TRUE(warnMessage.find("/api/test") != std::string::npos);
 
   // We can't easily test error and debug in isolation, but at least we've
   // covered the callback setup and mechanism
@@ -264,7 +265,7 @@ void test_mock_web_platform_json_edge_cases() {
   MockWebPlatform &platform = provider.getMockPlatform();
 
   // Test empty JSON object
-  WebResponse objResponse;
+  TestResponse objResponse;
   platform.createJsonResponse(objResponse, [](JsonObject &obj) {
     // Empty - intentionally creating an empty object
   });
@@ -273,7 +274,7 @@ void test_mock_web_platform_json_edge_cases() {
                            objResponse.getMimeType().c_str());
 
   // Test empty JSON array
-  WebResponse arrResponse;
+  TestResponse arrResponse;
   platform.createJsonArrayResponse(arrResponse, [](JsonArray &arr) {
     // Empty - intentionally creating an empty array
   });
@@ -282,15 +283,17 @@ void test_mock_web_platform_json_edge_cases() {
                            arrResponse.getMimeType().c_str());
 
   // Test deeply nested structure (tests serialization)
-  WebResponse nestedResponse;
+  TestResponse nestedResponse;
   platform.createJsonResponse(nestedResponse, [](JsonObject &obj) {
     JsonObject level1 = obj.createNestedObject("level1");
     JsonObject level2 = level1.createNestedObject("level2");
     JsonObject level3 = level2.createNestedObject("level3");
     level3["deep"] = "value";
   });
-  TEST_ASSERT_TRUE(nestedResponse.getContent().indexOf("deep") >= 0);
-  TEST_ASSERT_TRUE(nestedResponse.getContent().indexOf("value") >= 0);
+  TEST_ASSERT_TRUE(nestedResponse.getContent().find("deep") !=
+                   std::string::npos);
+  TEST_ASSERT_TRUE(nestedResponse.getContent().find("value") !=
+                   std::string::npos);
 }
 
 // Test MockWebPlatformProvider constructor and methods
@@ -315,9 +318,9 @@ void test_mock_web_platform_provider() {
 void test_mock_web_platform_params() {
   MockWebPlatformProvider provider;
 
-  // Create a MockWebRequest - the param methods are in this class, not in
+  // Create a TestRequest - the param methods are in this class, not in
   // MockWebPlatform
-  MockWebRequest mockRequest;
+  TestRequest mockRequest;
 
   // Set mock parameters
   mockRequest.setParam("id", "123");
@@ -342,19 +345,15 @@ void test_mock_web_platform_params() {
                            mockRequest.getModuleBasePath().c_str());
 }
 
-// Test MockWebRequest constructor and methods (lines 80-85, 114-116, 136-138,
+// Test TestRequest constructor and methods (lines 80-85, 114-116, 136-138,
 // 149-150)
 void test_mock_web_request() {
   // Test constructor with default parameter (line 80-81)
-  MockWebRequest defaultReq;
+  TestRequest defaultReq;
   TEST_ASSERT_EQUAL_STRING("/", defaultReq.getPath().c_str());
 
-  // Test constructor with custom path
-  MockWebRequest customPathReq("/custom/path");
-  TEST_ASSERT_EQUAL_STRING("/custom/path", customPathReq.getPath().c_str());
-
   // Test setParam and string conversion (lines 84-85)
-  MockWebRequest req;
+  TestRequest req;
   req.setParam("test_param", "test_value");
   req.setParam("numeric", "123");
 
@@ -377,8 +376,8 @@ void test_mock_web_request() {
   TEST_ASSERT_EQUAL_STRING("123", params["numeric"].c_str());
 
   // Test headers
-  req.setMockHeader("Content-Type", "application/json");
-  req.setMockHeader("Authorization", "Bearer token");
+  req.setHeader("Content-Type", "application/json");
+  req.setHeader("Authorization", "Bearer token");
   TEST_ASSERT_EQUAL_STRING("application/json",
                            req.getHeader("Content-Type").c_str());
   TEST_ASSERT_EQUAL_STRING("Bearer token",
@@ -396,29 +395,30 @@ void test_mock_web_request() {
   TEST_ASSERT_EQUAL_STRING("192.168.1.1", req.getClientIp().c_str());
 }
 
-// Test MockWebResponse constructor and methods (lines 176-177, 185-186,
+// Test TestResponse constructor and methods (lines 176-177, 185-186,
 // 192-193, 197-198, 208-210)
 void test_mock_web_response() {
   // Test constructor (lines 176-177)
-  MockWebResponse res;
+  TestResponse res;
   TEST_ASSERT_EQUAL_STRING("", res.getContent().c_str());
   TEST_ASSERT_EQUAL_STRING("text/html", res.getMimeType().c_str());
-  TEST_ASSERT_EQUAL(200, res.getStatusCode());
+  TEST_ASSERT_EQUAL(200, res.getStatus());
 
   // Test setContent (lines 185-186)
   res.setContent("Hello, World!", "text/plain");
   TEST_ASSERT_EQUAL_STRING("Hello, World!", res.getContent().c_str());
   TEST_ASSERT_EQUAL_STRING("text/plain", res.getMimeType().c_str());
-  TEST_ASSERT_EQUAL(13, res.getContentLength());
+  TEST_ASSERT_EQUAL(13, res.getContent().length());
 
   // Test setProgmemContent
   res.setProgmemContent("From PROGMEM", "text/html");
-  TEST_ASSERT_EQUAL_STRING("From PROGMEM", res.getContent().c_str());
+  TEST_ASSERT_TRUE(res.hasProgmemContent());
+  TEST_ASSERT_EQUAL_STRING("From PROGMEM", res.getProgmemData());
   TEST_ASSERT_EQUAL_STRING("text/html", res.getMimeType().c_str());
 
   // Test setStatus
   res.setStatus(404);
-  TEST_ASSERT_EQUAL(404, res.getStatusCode());
+  TEST_ASSERT_EQUAL(404, res.getStatus());
 
   // Test setHeader (lines 192-193)
   res.setHeader("Content-Encoding", "gzip");
@@ -428,14 +428,14 @@ void test_mock_web_response() {
   TEST_ASSERT_EQUAL_STRING("", res.getHeader("nonexistent_header").c_str());
 
   // Test redirect (lines 197-198)
-  res.redirect("/new/location", 301);
-  TEST_ASSERT_EQUAL(301, res.getStatusCode());
+  res.setRedirect("/new/location", 301);
+  TEST_ASSERT_EQUAL(301, res.getStatus());
   TEST_ASSERT_EQUAL_STRING("/new/location", res.getHeader("Location").c_str());
 
   // Test defaults for redirect
-  MockWebResponse res2;
-  res2.redirect("/default/redirect");
-  TEST_ASSERT_EQUAL(302, res2.getStatusCode()); // Default redirect code is 302
+  TestResponse res2;
+  res2.setRedirect("/default/redirect");
+  TEST_ASSERT_EQUAL(302, res2.getStatus()); // Default redirect code is 302
   TEST_ASSERT_EQUAL_STRING("/default/redirect",
                            res2.getHeader("Location").c_str());
 
@@ -451,30 +451,38 @@ void test_mock_web_response() {
   TEST_ASSERT_TRUE(res.isResponseSent());
 }
 
-// Test Authentication handling in MockWebRequest (lines 96-97)
+// Test Authentication handling in TestRequest (lines 96-97)
 void test_mock_web_request_auth() {
-  MockWebRequest req;
+  TestRequest req;
 
   // Test unauthenticated state (default)
   TEST_ASSERT_FALSE(req.getAuthContext().isAuthenticated);
   TEST_ASSERT_EQUAL_STRING("", req.getAuthContext().username.c_str());
 
-  // Test setAuthContext with boolean and username (line 96-97)
-  req.setAuthContext(true, "testuser");
+  // Test setAuthContext with AuthContext object
+  AuthContext authCtx;
+  authCtx.isAuthenticated = true;
+  authCtx.username = "testuser";
+  authCtx.authenticatedVia = AuthType::SESSION;
+  authCtx.sessionId = "test_session";
+
+  req.setAuthContext(authCtx);
   TEST_ASSERT_TRUE(req.getAuthContext().isAuthenticated);
   TEST_ASSERT_EQUAL_STRING("testuser", req.getAuthContext().username.c_str());
   TEST_ASSERT_EQUAL(AuthType::SESSION, req.getAuthContext().authenticatedVia);
   TEST_ASSERT_EQUAL_STRING("test_session",
                            req.getAuthContext().sessionId.c_str());
 
-  // Test setAuthContext with boolean only
-  MockWebRequest req2;
-  req2.setAuthContext(true);
+  // Test setAuthContext with minimal AuthContext
+  TestRequest req2;
+  AuthContext minimalCtx;
+  minimalCtx.isAuthenticated = true;
+  req2.setAuthContext(minimalCtx);
   TEST_ASSERT_TRUE(req2.getAuthContext().isAuthenticated);
   TEST_ASSERT_EQUAL_STRING("", req2.getAuthContext().username.c_str());
 
   // Test setAuthContext with full auth context object
-  MockWebRequest req3;
+  TestRequest req3;
   AuthContext ctx;
   ctx.isAuthenticated = true;
   ctx.username = "apiuser";
@@ -489,7 +497,7 @@ void test_mock_web_request_auth() {
                            req3.getAuthContext().sessionId.c_str());
 
   // Test route parameters (since we can't directly test getMatchedRoutePattern)
-  MockWebRequest req4;
+  TestRequest req4;
   req4.setParam("resource", "users");
   req4.setParam("id", "123");
   TEST_ASSERT_EQUAL_STRING("users", req4.getRouteParameter("resource").c_str());

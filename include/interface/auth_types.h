@@ -1,8 +1,8 @@
 #ifndef AUTH_TYPES_H
 #define AUTH_TYPES_H
 
-#include <Arduino.h>
-#include <interface/core/auth_types_core.h>
+#include "core/auth_types_core.h"
+#include "string_compat.h"
 
 /**
  * Authentication Types for Route Protection

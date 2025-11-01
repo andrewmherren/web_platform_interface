@@ -1,4 +1,5 @@
 #include "../../include/testing/route_variant_native.h"
+#include "native/include/test_handler_types.h"
 #include <ArduinoFake.h>
 #include <interface/utils/route_variant.h>
 #include <interface/web_module_interface.h>
@@ -9,7 +10,7 @@
 // This focuses specifically on the dummy handlers used in error cases
 
 // Simple test handlers
-static void testHandler(WebRequest &req, WebResponse &res) {
+static void testHandler(TestRequest &req, TestResponse &res) {
   res.setContent("test", "text/plain");
 }
 
@@ -30,9 +31,8 @@ void test_route_variant_native_dummy_web_handler() {
   TEST_ASSERT_EQUAL(WebModule::WM_GET, dummyRoute.method);
   TEST_ASSERT_EQUAL_STRING("", dummyRoute.path.c_str());
 
-  // Simply verify the handler exists, but don't try to call it
-  // due to mismatched function signatures in the test environment
-  TEST_ASSERT_NOT_NULL(&dummyRoute.handler);
+  // Note: .handler field only exists in Arduino builds, not in native
+  // The handler is stored differently in native implementation
 
   TEST_PASS();
 }
@@ -56,9 +56,8 @@ void test_route_variant_native_dummy_api_handler() {
   // The path is '/' not an empty string in the implementation
   TEST_ASSERT_EQUAL_STRING("/", dummyRoute.webRoute.path.c_str());
 
-  // Simply verify the handler exists, but don't try to call it
-  // due to mismatched function signatures in the test environment
-  TEST_ASSERT_NOT_NULL(&dummyRoute.webRoute.handler);
+  // Note: .handler field only exists in Arduino builds, not in native
+  // The handler is stored differently in native implementation
 
   TEST_PASS();
 }

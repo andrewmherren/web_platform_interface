@@ -1,7 +1,7 @@
 #ifndef OPENAPI_TYPES_H
 #define OPENAPI_TYPES_H
 
-#include <Arduino.h>
+#include "string_compat.h"
 #include <type_traits>
 #include <vector>
 
