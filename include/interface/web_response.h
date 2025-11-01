@@ -84,8 +84,11 @@ private:
   esp_err_t streamFromStorage(const String &collection, const String &key,
                               httpd_req *req, const String &driverName = "");
 
-  // Allow WebPlatform to call private methods
-  friend class WebPlatform;
+  // Allow the hosting platform core to call private methods.
+  // Renamed from 'WebPlatform' to avoid collisions with libraries that
+  // define a namespace or class named 'WebPlatform'.
+  // Platforms may ignore this friend if not needed.
+  friend class WebPlatformCoreAccess;
 };
 
 #endif // WEB_RESPONSE_H
