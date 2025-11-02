@@ -71,6 +71,9 @@ jobs:
             --exclude ".*Arduino.*" \
             --exclude ".*unity.*" \
             --exclude "/usr/include/.*" \
+            --exclude-lines-by-pattern ".*#ifdef (ARDUINO|ESP_PLATFORM).*" \
+            --exclude-lines-by-pattern ".*#if defined\((ARDUINO|ESP_PLATFORM)\).*" \
+            --exclude-unreachable-branches \
             -o coverage.xml \
             --print-summary
 
