@@ -7,7 +7,6 @@
 #include <interface/webserver_typedefs.h>
 #include <map>
 
-
 struct httpd_req;
 typedef int esp_err_t;
 
@@ -83,12 +82,6 @@ private:
                          WebServerClass *server, const String &driverName = "");
   esp_err_t streamFromStorage(const String &collection, const String &key,
                               httpd_req *req, const String &driverName = "");
-
-  // Allow the hosting platform core to call private methods.
-  // Renamed from 'WebPlatform' to avoid collisions with libraries that
-  // define a namespace or class named 'WebPlatform'.
-  // Platforms may ignore this friend if not needed.
-  friend class WebPlatformCoreAccess;
 };
 
 #endif // WEB_RESPONSE_H

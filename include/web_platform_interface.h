@@ -105,6 +105,22 @@ public:
   virtual IWebPlatform &getPlatform() = 0;
 
   // Static instance for global access
+  /**
+   * @brief Static instance pointer to the web platform provider implementation.
+   *
+   * This inline static member variable holds a pointer to the current web
+   * platform provider instance. The inline static initialization is a C++17
+   * feature that replaces the traditional external definition pattern.
+   *
+   * @note Requires C++17 or later. This is a breaking change from previous
+   * versions that used external definition. Ensure all consuming projects are
+   * compiled with -std=c++17 or -std=gnu++17 flags.
+   *
+   * @warning Projects using C++14 or earlier will fail to compile with this
+   * change.
+   *
+   * @see IWebPlatformProvider for the interface definition
+   */
   inline static IWebPlatformProvider *instance = nullptr;
   static IWebPlatform &getPlatformInstance() {
     if (!instance) {

@@ -1,25 +1,25 @@
 #include <unity.h>
 
-// Include native test sources for interface/type tests
+// Include native test headers for interface/type tests
 // These are pure C++ tests with mocked Arduino APIs via ArduinoFake
 #ifdef NATIVE_PLATFORM
 #include <ArduinoFake.h>
 
-// Include all test source files directly (they include their headers)
-// This approach ensures all tests are compiled and linked into the test binary
-#include "native/src/helpers/json_test_utils.cpp"
-#include "native/src/interface/test_core_types.cpp"
-#include "native/src/interface/utils/route_variant.cpp"
-#include "native/src/interface/web_module_interface.cpp"
-#include "native/src/interface/web_module_types.cpp"
-#include "native/src/interface/web_platform_interface.cpp"
-#include "native/src/interface/web_request.cpp"
-#include "native/src/interface/web_response.cpp"
-#include "native/src/testing/mock_web_platform.cpp"
-#include "native/src/testing/mocks.cpp"
-#include "native/src/testing/route_variant_native.cpp"
-#include "native/src/testing/testing_platform_provider.cpp"
-#include "native/src/testing/testing_platform_provider_json.cpp"
+// Include test headers - the corresponding .cpp files should be added to
+// test_build_src in platformio.ini for proper compilation
+#include "helpers/json_test_utils.h"
+#include "interface/test_core_types.h"
+#include "interface/utils/route_variant.h"
+#include "interface/web_module_interface.h"
+#include "interface/web_module_types.h"
+#include "interface/web_platform_interface.h"
+#include "interface/web_request.h"
+#include "interface/web_response.h"
+#include "testing/mock_web_platform.h"
+#include "testing/mocks.h"
+#include "testing/route_variant_native.h"
+#include "testing/testing_platform_provider.h"
+#include "testing/testing_platform_provider_json.h"
 
 // Forward declarations for test registrars (defined in the included source
 // files)
