@@ -36,9 +36,8 @@ void register_web_platform_interface_tests();
 void register_testing_platform_provider_json_tests();
 void register_testing_platform_provider_tests();
 void register_mock_web_platform_tests();
-// TODO: Re-enable after fixing compilation issues
-// void register_web_request_core_tests();
-// void register_web_module_interface_core_tests();
+void register_web_request_core_tests();
+void register_web_module_interface_core_tests();
 
 extern "C" void setUp(void) { ArduinoFakeReset(); }
 
@@ -63,9 +62,8 @@ int main(int argc, char **argv) {
   register_testing_platform_provider_json_tests();
   register_testing_platform_provider_tests();
   register_mock_web_platform_tests();
-  // TODO: Re-enable after fixing compilation issues
-  // register_web_request_core_tests();
-  // register_web_module_interface_core_tests();
+  register_web_request_core_tests();
+  register_web_module_interface_core_tests();
 
   UNITY_END();
   return 0;
