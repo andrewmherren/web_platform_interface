@@ -36,11 +36,21 @@ void test_mock_web_request_basic_operations() {
   TEST_ASSERT_EQUAL_STRING("value2", mockReq.getParam("key2").c_str());
   TEST_ASSERT_EQUAL_STRING("", mockReq.getParam("nonexistent").c_str());
 
-  // Test getAllParams method
+  // Test getAllParams method (covers line 151 in mock_web_platform.h)
   std::map<String, String> allParams = mockReq.getAllParams();
   TEST_ASSERT_EQUAL(2, allParams.size());
   TEST_ASSERT_EQUAL_STRING("value1", allParams["key1"].c_str());
   TEST_ASSERT_EQUAL_STRING("value2", allParams["key2"].c_str());
+
+  // Test with more parameters to ensure the loop executes multiple times
+  mockReq.setParam("key3", "value3");
+  mockReq.setParam("key4", "value4");
+  mockReq.setParam("key5", "value5");
+  std::map<String, String> allParams2 = mockReq.getAllParams();
+  TEST_ASSERT_EQUAL(5, allParams2.size());
+  TEST_ASSERT_EQUAL_STRING("value3", allParams2["key3"].c_str());
+  TEST_ASSERT_EQUAL_STRING("value4", allParams2["key4"].c_str());
+  TEST_ASSERT_EQUAL_STRING("value5", allParams2["key5"].c_str());
 
   // Test body handling
   mockReq.setBody("test body content");
