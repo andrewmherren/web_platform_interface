@@ -65,7 +65,6 @@ jobs:
             --root $GITHUB_WORKSPACE \
             --object-directory .pio/build/test_native \
             --filter "src|include" \
-            --exclude ".*include/arduino/.*" \
             --exclude-throw-branches \
             --exclude-directories ".*libdeps.*" \
             --exclude ".*FakeIt.*" \
@@ -93,7 +92,7 @@ jobs:
             -Dsonar.sources=src,include \
             -Dsonar.tests=test \
             -Dsonar.exclusions=**/build-wrapper-dump.json \
-            -Dsonar.coverage.exclusions=**/test/**/*,**/libdeps/**/*,**/.github/**/*,**/include/arduino/**/* \
+            -Dsonar.coverage.exclusions=**/test/**/*,**/libdeps/**/*,**/.github/**/* \
             -Dsonar.cfamily.compile-commands=bw-output/compile_commands.json \
             -Dsonar.cfamily.gcov.reportsPath=. \
             -Dsonar.cfamily.gcov.xmlReportPaths=coverage.xml \

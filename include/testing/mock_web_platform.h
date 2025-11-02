@@ -9,14 +9,15 @@
     "NATIVE_PLATFORM must be defined by the build system for native testing. Check your platformio.ini configuration."
 #endif
 
-#include "arduino/arduino_string_compat.h"
 #include <ArduinoFake.h>
 #include <ArduinoJson.h>
 #include <functional>
 #include <map>
 #include <sstream>
 #include <string>
+#include <testing/arduino_string_compat.h>
 #include <vector>
+
 
 // Use interfaces instead of mocks
 #include <interface/auth_types.h>
