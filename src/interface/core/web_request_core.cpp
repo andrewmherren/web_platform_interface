@@ -94,6 +94,7 @@ void WebRequestCore::parseJsonData(const std::string &jsonData) {
         jsonParams[key] = kv.value().as<bool>() ? "true" : "false";
       }
     }
+  }
 
 #else
   // For native testing, use a JSON library compatible approach
@@ -171,63 +172,63 @@ void WebRequestCore::parseJsonData(const std::string &jsonData) {
       pos++;
   }
 #endif
+}
+
+void WebRequestCore::parseRequestBody(const std::string &body,
+                                      const std::string &contentType) {
+  if (body.empty())
+    return;
+
+  // Convert content type to lowercase for comparison
+  std::string lowerContentType = contentType;
+  std::transform(lowerContentType.begin(), lowerContentType.end(),
+                 lowerContentType.begin(), ::tolower);
+
+  if (lowerContentType.find("application/json") != std::string::npos) {
+    parseJsonData(body);
+  } else if (lowerContentType.find("application/x-www-form-urlencoded") !=
+             std::string::npos) {
+    parseFormData(body);
   }
+  // multipart/form-data would need more complex parsing - skip for now
+}
 
-  void WebRequestCore::parseRequestBody(const std::string &body,
-                                        const std::string &contentType) {
-    if (body.empty())
-      return;
+std::string WebRequestCore::urlDecode(const std::string &str) {
+  std::string result;
+  result.reserve(str.length());
 
-    // Convert content type to lowercase for comparison
-    std::string lowerContentType = contentType;
-    std::transform(lowerContentType.begin(), lowerContentType.end(),
-                   lowerContentType.begin(), ::tolower);
-
-    if (lowerContentType.find("application/json") != std::string::npos) {
-      parseJsonData(body);
-    } else if (lowerContentType.find("application/x-www-form-urlencoded") !=
-               std::string::npos) {
-      parseFormData(body);
-    }
-    // multipart/form-data would need more complex parsing - skip for now
-  }
-
-  std::string WebRequestCore::urlDecode(const std::string &str) {
-    std::string result;
-    result.reserve(str.length());
-
-    for (size_t i = 0; i < str.length(); ++i) {
-      if (str[i] == '+') {
-        result += ' ';
-      } else if (str[i] == '%' && i + 2 < str.length()) {
-        // Parse hex digits
-        char hex[3] = {str[i + 1], str[i + 2], 0};
-        char *endptr;
-        long value = strtol(hex, &endptr, 16);
-        if (endptr == hex + 2) {
-          result += static_cast<char>(value);
-          i += 2;
-        } else {
-          result += str[i];
-        }
+  for (size_t i = 0; i < str.length(); ++i) {
+    if (str[i] == '+') {
+      result += ' ';
+    } else if (str[i] == '%' && i + 2 < str.length()) {
+      // Parse hex digits
+      char hex[3] = {str[i + 1], str[i + 2], 0};
+      char *endptr;
+      long value = strtol(hex, &endptr, 16);
+      if (endptr == hex + 2) {
+        result += static_cast<char>(value);
+        i += 2;
       } else {
         result += str[i];
       }
+    } else {
+      result += str[i];
     }
-
-    return result;
   }
 
-  // Case-insensitive string comparison for header lookups
-  int WebRequestCore::caseInsensitiveCompare(const std::string &s1,
-                                             const std::string &s2) const {
-    const char *str1 = s1.c_str();
-    const char *str2 = s2.c_str();
-    while (*str1 && *str2) {
-      int c1 = std::tolower(*str1++);
-      int c2 = std::tolower(*str2++);
-      if (c1 != c2)
-        return c1 - c2;
-    }
-    return std::tolower(*str1) - std::tolower(*str2);
+  return result;
+}
+
+// Case-insensitive string comparison for header lookups
+int WebRequestCore::caseInsensitiveCompare(const std::string &s1,
+                                           const std::string &s2) const {
+  const char *str1 = s1.c_str();
+  const char *str2 = s2.c_str();
+  while (*str1 && *str2) {
+    int c1 = std::tolower(*str1++);
+    int c2 = std::tolower(*str2++);
+    if (c1 != c2)
+      return c1 - c2;
   }
+  return std::tolower(*str1) - std::tolower(*str2);
+}

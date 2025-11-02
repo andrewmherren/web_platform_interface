@@ -7,19 +7,19 @@
 
 // Include test headers - the corresponding .cpp files should be added to
 // test_build_src in platformio.ini for proper compilation
-#include "helpers/json_test_utils.h"
-#include "interface/test_core_types.h"
-#include "interface/utils/route_variant.h"
-#include "interface/web_module_interface.h"
-#include "interface/web_module_types.h"
-#include "interface/web_platform_interface.h"
-#include "interface/web_request.h"
-#include "interface/web_response.h"
-#include "testing/mock_web_platform.h"
-#include "testing/mocks.h"
-#include "testing/route_variant_native.h"
-#include "testing/testing_platform_provider.h"
-#include "testing/testing_platform_provider_json.h"
+#include "native/include/helpers/json_test_utils.h"
+#include "native/include/interface/test_core_types.h"
+#include "native/include/interface/utils/route_variant.h"
+#include "native/include/interface/web_module_interface.h"
+#include "native/include/interface/web_module_types.h"
+#include "native/include/interface/web_platform_interface.h"
+#include "native/include/interface/web_request.h"
+#include "native/include/interface/web_response.h"
+#include "native/include/testing/mock_web_platform.h"
+#include "native/include/testing/mocks.h"
+#include "native/include/testing/route_variant_native.h"
+#include "native/include/testing/testing_platform_provider.h"
+#include "native/include/testing/testing_platform_provider_json.h"
 
 // Forward declarations for test registrars (defined in the included source
 // files)
