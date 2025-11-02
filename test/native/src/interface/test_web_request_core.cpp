@@ -23,6 +23,14 @@ void test_web_request_core_parse_query_params() {
                            request.getParam("email").c_str());
   TEST_ASSERT_EQUAL_STRING("50% off", request.getParam("text").c_str());
 
+  // Test invalid percent encoding (line 212)
+  request.clearParams();
+  request.parseQueryParams("bad=%ZZ&incomplete=%2&valid=%20");
+  // Invalid sequences should be left as-is
+  TEST_ASSERT_EQUAL_STRING("%ZZ", request.getParam("bad").c_str());
+  TEST_ASSERT_EQUAL_STRING("%2", request.getParam("incomplete").c_str());
+  TEST_ASSERT_EQUAL_STRING(" ", request.getParam("valid").c_str());
+
   // Test empty value
   request.clearParams();
   request.parseQueryParams("empty=&nonempty=test");
@@ -93,6 +101,11 @@ void test_web_request_core_parse_json_data() {
   request.parseJsonData("{}");
   TEST_ASSERT_EQUAL(0, request.getJsonParam("nonexistent").size());
 
+  // Test empty JSON string (line 71)
+  request.clearJsonParams();
+  request.parseJsonData("");
+  TEST_ASSERT_EQUAL(0, request.getJsonParam("nonexistent").size());
+
   // Test invalid JSON (should not crash)
   request.clearJsonParams();
   request.parseJsonData("not json");
@@ -102,6 +115,36 @@ void test_web_request_core_parse_json_data() {
   request.clearJsonParams();
   request.parseJsonData(R"({"outer":"value"})");
   TEST_ASSERT_EQUAL_STRING("value", request.getJsonParam("outer").c_str());
+
+  // Test JSON with malformed key (missing quote) - line 122
+  request.clearJsonParams();
+  request.parseJsonData(R"({key:"value"})");
+  // Should handle gracefully without crash
+
+  // Test JSON with missing closing quote on key - line 128
+  request.clearJsonParams();
+  request.parseJsonData(R"({"key)");
+  // Should handle gracefully without crash
+
+  // Test JSON with missing colon - line 136
+  request.clearJsonParams();
+  request.parseJsonData(R"({"key" "value"})");
+  // Should handle gracefully without crash
+
+  // Test JSON that ends after colon - line 143
+  request.clearJsonParams();
+  request.parseJsonData(R"({"key":)");
+  // Should handle gracefully without crash
+
+  // Test JSON with missing closing quote on value - line 154
+  request.clearJsonParams();
+  request.parseJsonData(R"({"key":"value)");
+  // Should handle gracefully without crash
+
+  // Test JSON with trailing whitespace after value - line 108
+  request.clearJsonParams();
+  request.parseJsonData(R"(   {"key":"value"}   )");
+  TEST_ASSERT_EQUAL_STRING("value", request.getJsonParam("key").c_str());
 }
 
 // Test WebRequestCore body parsing with content type routing
@@ -127,6 +170,12 @@ void test_web_request_core_parse_request_body() {
   request.clearJsonParams();
   request.parseRequestBody(jsonBody, "application/json; charset=utf-8");
   TEST_ASSERT_EQUAL_STRING("admin", request.getJsonParam("user").c_str());
+
+  // Test empty body (line 180)
+  request.clearParams();
+  request.clearJsonParams();
+  request.parseRequestBody("", "application/json");
+  TEST_ASSERT_EQUAL(0, request.getAllParams().size());
 
   // Test unknown content type (should not parse)
   request.clearParams();
