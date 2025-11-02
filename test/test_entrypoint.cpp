@@ -41,6 +41,7 @@ void register_web_module_interface_core_tests();
 void register_web_response_core_tests();
 void register_web_platform_interface_error_tests();
 void register_web_module_lifecycle_tests();
+void register_web_response_native_tests();
 
 extern "C" void setUp(void) { ArduinoFakeReset(); }
 
@@ -70,6 +71,7 @@ int main(int argc, char **argv) {
   register_web_response_core_tests();
   register_web_platform_interface_error_tests();
   register_web_module_lifecycle_tests();
+  register_web_response_native_tests();
 
   UNITY_END();
   return 0;
