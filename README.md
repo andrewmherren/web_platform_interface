@@ -383,21 +383,6 @@ build_flags =
 
 ## Common Patterns
 
-### Module Registration Pattern
-
-```cpp
-class MyModule : public IWebModule {
-    void onModuleRegistered(const String& basePath, IWebPlatform* platform) override {
-        platform_ = platform;
-        basePath_ = basePath;
-        
-        if (platform_->isHttpsEnabled()) {
-            // HTTPS-specific setup
-        }
-    }
-};
-```
-
 ### Authentication Check Pattern
 
 ```cpp
