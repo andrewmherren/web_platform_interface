@@ -5,32 +5,36 @@
 // Test WebResponse native implementation branch coverage
 
 // Test setContent with various mime types (line 11 branches - need 6)
+// Line 11: core.setContent(content.c_str(), mimeType.c_str())
+// Each .c_str() creates branches based on String state
 void test_web_response_native_set_content_branches() {
   WebResponse response;
 
-  // Branch 1: Normal content with default mime type
-  response.setContent("test content");
+  // Branch combo 1: content non-empty, mimeType non-empty
+  response.setContent("test content", "text/html");
   TEST_ASSERT_EQUAL_STRING("test content", response.getContent().c_str());
 
-  // Branch 2: Content with explicit mime type
-  response.setContent("json content", "application/json");
-  TEST_ASSERT_EQUAL_STRING("json content", response.getContent().c_str());
-
-  // Branch 3: Empty content with default mime type
-  response.setContent("");
-  TEST_ASSERT_EQUAL_STRING("", response.getContent().c_str());
-
-  // Branch 4: Empty content with explicit mime type
-  response.setContent("", "text/html");
-  TEST_ASSERT_EQUAL_STRING("", response.getContent().c_str());
-
-  // Branch 5: Content with empty mime type
+  // Branch combo 2: content non-empty, mimeType empty
   response.setContent("content", "");
   TEST_ASSERT_EQUAL_STRING("content", response.getContent().c_str());
 
-  // Branch 6: Various mime types
-  response.setContent("xml", "application/xml");
-  TEST_ASSERT_EQUAL_STRING("xml", response.getContent().c_str());
+  // Branch combo 3: content empty, mimeType non-empty
+  response.setContent("", "application/json");
+  TEST_ASSERT_EQUAL_STRING("", response.getContent().c_str());
+
+  // Branch combo 4: content empty, mimeType empty
+  response.setContent("", "");
+  TEST_ASSERT_EQUAL_STRING("", response.getContent().c_str());
+
+  // Branch combo 5: Long content, specific mime type
+  response.setContent("This is a longer content string", "text/plain");
+  TEST_ASSERT_EQUAL_STRING("This is a longer content string",
+                           response.getContent().c_str());
+
+  // Branch combo 6: Special characters in content
+  response.setContent("{\"key\":\"value\"}", "application/json");
+  TEST_ASSERT_EQUAL_STRING("{\"key\":\"value\"}",
+                           response.getContent().c_str());
 }
 
 // Test setProgmemContent branches (line 17 - need 4)
@@ -113,27 +117,35 @@ void test_web_response_native_redirect_branches() {
 void test_web_response_native_get_content_branches() {
   WebResponse response;
 
-  // Line 30-32: hasProgmemContent() true && getProgmemData() not null
-  const char *progmem = "progmem data";
-  response.setProgmemContent(progmem, "text/plain");
-  TEST_ASSERT_EQUAL_STRING("progmem data", response.getContent().c_str());
-
-  // Line 34: hasProgmemContent() false - use normal content
+  // Line 30: Branch 1 - hasProgmemContent() is FALSE (short-circuit)
+  // This happens when content type is Normal, not Progmem
   response.setContent("normal content", "text/html");
-  TEST_ASSERT_EQUAL_STRING("normal content", response.getContent().c_str());
+  String content1 = response.getContent();
+  TEST_ASSERT_EQUAL_STRING("normal content", content1.c_str());
 
-  // Line 38-39: Empty normal content
-  response.setContent("", "text/plain");
-  TEST_ASSERT_EQUAL_STRING("", response.getContent().c_str());
+  // Line 30: Branch 2 - hasProgmemContent() is TRUE but getProgmemData() is
+  // NULL This happens when we set progmem content with nullptr
+  response.setProgmemContent(nullptr, "text/plain");
+  String content2 = response.getContent();
+  // Should fall through to line 34 and return empty core.getContent()
 
-  // Test progmem with empty string
+  // Line 30-32: Branch 3 - hasProgmemContent() TRUE && getProgmemData() NOT
+  // NULL
+  const char *progmem = "progmem data";
+  response.setProgmemContent(progmem, "text/javascript");
+  String content3 = response.getContent();
+  TEST_ASSERT_EQUAL_STRING("progmem data", content3.c_str());
+
+  // Additional branch: Empty progmem data (not null, but empty string)
   const char *emptyProgmem = "";
   response.setProgmemContent(emptyProgmem, "text/css");
-  TEST_ASSERT_EQUAL_STRING("", response.getContent().c_str());
+  String content4 = response.getContent();
+  TEST_ASSERT_EQUAL_STRING("", content4.c_str());
 
-  // Test null progmem pointer (if implementation allows)
-  response.setProgmemContent(nullptr, "text/js");
-  // Should fall back to normal content path
+  // Test after clearing with setContent (switches back to Normal type)
+  response.setContent("", "text/plain");
+  String content5 = response.getContent();
+  TEST_ASSERT_EQUAL_STRING("", content5.c_str());
 }
 
 // Test getHeader branches (line 46 - need 4)
@@ -191,58 +203,40 @@ void test_web_response_native_set_json_content_branches() {
   response.setJsonContent(finalDoc);
 }
 
-// Test setStorageStreamContent branches (lines 56-57 - need 14 and 8)
+// Test setStorageStreamContent branches (lines 56-57)
+// Line 56: (driverName.length() == 0) creates 2 branches
+// Line 57: core.setStorageStreamContent(collection.c_str(), key.c_str(),
+// mimeType.c_str(), driver) Each .c_str() call creates branches based on String
+// state
 void test_web_response_native_set_storage_stream_branches() {
   WebResponse response;
 
-  // Line 56-57: driverName.length() == 0 ? "littlefs" : driverName.c_str()
+  // Test all combinations of empty/non-empty for the 4 string parameters
+  // Format: (collection, key, mimeType, driverName)
 
-  // Branch 1: With explicit driver name (non-empty)
-  response.setStorageStreamContent("collection1", "key1", "image/png",
-                                   "spiffs");
+  // With driver name (driverName != "") - driver branch = FALSE
+  response.setStorageStreamContent("col", "k", "mime", "driver"); // 1111
+  response.setStorageStreamContent("col", "k", "mime", "");       // 1110
+  response.setStorageStreamContent("col", "k", "", "driver");     // 1101
+  response.setStorageStreamContent("col", "k", "", "");           // 1100
+  response.setStorageStreamContent("col", "", "mime", "driver");  // 1011
+  response.setStorageStreamContent("col", "", "mime", "");        // 1010
+  response.setStorageStreamContent("col", "", "", "driver");      // 1001
+  response.setStorageStreamContent("col", "", "", "");            // 1000
 
-  // Branch 2: With empty driver name (defaults to "littlefs")
-  response.setStorageStreamContent("collection2", "key2", "application/pdf",
-                                   "");
+  // Empty driver (driverName == "") triggers default "littlefs" - driver branch
+  // = TRUE
+  response.setStorageStreamContent("", "k", "mime", "driver"); // 0111
+  response.setStorageStreamContent("", "k", "mime", "");       // 0110
+  response.setStorageStreamContent("", "k", "", "driver");     // 0101
+  response.setStorageStreamContent("", "k", "", "");           // 0100
+  response.setStorageStreamContent("", "", "mime", "driver");  // 0011
+  response.setStorageStreamContent("", "", "mime", "");        // 0010
+  response.setStorageStreamContent("", "", "", "driver");      // 0001
+  response.setStorageStreamContent("", "", "", "");            // 0000
 
-  // Branch 3: Empty collection with driver
-  response.setStorageStreamContent("", "key3", "text/plain", "littlefs");
-
-  // Branch 4: Empty collection without driver
-  response.setStorageStreamContent("", "key4", "text/html", "");
-
-  // Branch 5: Empty key with driver
-  response.setStorageStreamContent("collection5", "", "image/jpeg", "spiffs");
-
-  // Branch 6: Empty key without driver
-  response.setStorageStreamContent("collection6", "", "text/css", "");
-
-  // Branch 7: Empty mime type with driver
-  response.setStorageStreamContent("collection7", "key7", "", "littlefs");
-
-  // Branch 8: Empty mime type without driver
-  response.setStorageStreamContent("collection8", "key8", "", "");
-
-  // Branch 9: All params with driver
-  response.setStorageStreamContent("coll", "k", "text/plain", "spiffs");
-
-  // Branch 10: All params without driver
-  response.setStorageStreamContent("coll2", "k2", "text/html", "");
-
-  // Branch 11: Empty collection and key with driver
-  response.setStorageStreamContent("", "", "image/png", "spiffs");
-
-  // Branch 12: Empty collection and key without driver
-  response.setStorageStreamContent("", "", "image/gif", "");
-
-  // Branch 13: All empty with driver
-  response.setStorageStreamContent("", "", "", "spiffs");
-
-  // Branch 14: All empty without driver (default)
-  response.setStorageStreamContent("", "", "", "");
-}
-
-// Test sendTo branch
+  TEST_PASS();
+} // Test sendTo branch
 void test_web_response_native_send_to() {
   WebResponse response;
 
