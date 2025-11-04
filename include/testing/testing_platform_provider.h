@@ -101,7 +101,8 @@ public:
   void createJsonResponse(WebResponseCore &res,
                           std::function<void(JsonObject &)> builder) override {
     // Create a document and call the builder
-    StaticJsonDocument<512> doc;
+    // Use a larger capacity to accommodate nested objects/arrays in tests
+    StaticJsonDocument<1024> doc;
     JsonObject root = doc.to<JsonObject>();
     builder(root);
 
@@ -117,7 +118,7 @@ public:
   createJsonArrayResponse(WebResponseCore &res,
                           std::function<void(JsonArray &)> builder) override {
     // Create a document and call the builder
-    StaticJsonDocument<512> doc;
+    StaticJsonDocument<1024> doc;
     JsonArray root = doc.to<JsonArray>();
     builder(root);
 
@@ -133,7 +134,7 @@ public:
   void createJsonResponse(WebResponse &res,
                           std::function<void(JsonObject &)> builder) override {
     // Create a document and call the builder
-    StaticJsonDocument<512> doc;
+    StaticJsonDocument<1024> doc;
     JsonObject root = doc.to<JsonObject>();
     builder(root);
 
@@ -149,7 +150,7 @@ public:
   createJsonArrayResponse(WebResponse &res,
                           std::function<void(JsonArray &)> builder) override {
     // Create a document and call the builder
-    StaticJsonDocument<512> doc;
+    StaticJsonDocument<1024> doc;
     JsonArray root = doc.to<JsonArray>();
     builder(root);
 
