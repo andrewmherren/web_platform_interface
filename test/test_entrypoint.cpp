@@ -100,8 +100,10 @@ void setup() {
   while (!Serial) {
     delay(10);
   }
-
   UNITY_BEGIN();
+  // Give the serial monitor a moment to attach before printing results
+  delay(500);
+
   RUN_TEST(test_interface_library_compiles_on_esp32);
   UNITY_END();
 }
