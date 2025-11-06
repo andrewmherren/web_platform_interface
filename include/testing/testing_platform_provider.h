@@ -101,7 +101,8 @@ public:
   void createJsonResponse(WebResponseCore &res,
                           std::function<void(JsonObject &)> builder) override {
     // Create a document and call the builder
-    StaticJsonDocument<512> doc;
+    // Match the real implementation's default size (SMALL_JSON_SIZE = 1024)
+    StaticJsonDocument<1024> doc;
     JsonObject root = doc.to<JsonObject>();
     builder(root);
 
@@ -117,7 +118,8 @@ public:
   createJsonArrayResponse(WebResponseCore &res,
                           std::function<void(JsonArray &)> builder) override {
     // Create a document and call the builder
-    StaticJsonDocument<512> doc;
+    // Match the real implementation's default size (SMALL_JSON_SIZE = 1024)
+    StaticJsonDocument<1024> doc;
     JsonArray root = doc.to<JsonArray>();
     builder(root);
 
@@ -133,7 +135,8 @@ public:
   void createJsonResponse(WebResponse &res,
                           std::function<void(JsonObject &)> builder) override {
     // Create a document and call the builder
-    StaticJsonDocument<512> doc;
+    // Match the real implementation's default size (SMALL_JSON_SIZE = 1024)
+    StaticJsonDocument<1024> doc;
     JsonObject root = doc.to<JsonObject>();
     builder(root);
 
@@ -149,7 +152,8 @@ public:
   createJsonArrayResponse(WebResponse &res,
                           std::function<void(JsonArray &)> builder) override {
     // Create a document and call the builder
-    StaticJsonDocument<512> doc;
+    // Match the real implementation's default size (SMALL_JSON_SIZE = 1024)
+    StaticJsonDocument<1024> doc;
     JsonArray root = doc.to<JsonArray>();
     builder(root);
 
