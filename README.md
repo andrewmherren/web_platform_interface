@@ -11,6 +11,19 @@ A lightweight interface library that provides core type definitions, interfaces,
 - 🎯 **Unified Types**: Consistent type definitions across all WebPlatform modules
 - 🔗 **Platform Abstraction**: Dependency injection support for different platform implementations
 
+## Core vs Arduino layers
+
+This library exposes a pure C++ core and thin Arduino wrappers:
+
+- Core (header-only types): `include/interface/core/`
+    - `web_request_core.h`, `web_response_core.h`, `web_module_interface_core.h`
+    - `auth_types_core.h` (AuthType, AuthRequirements) — no Arduino dependencies
+- Arduino wrappers: `include/interface/`
+    - `web_request.h`, `web_response.h`, `web_module_interface.h`, `auth_types.h`
+    - Preserve Arduino `String` APIs and convert to/from the core
+
+OpenAPI documentation types remain Arduino-layer for now; the core intentionally omits doc metadata.
+
 ## Purpose
 
 This library serves as the foundational contract layer for the WebPlatform ecosystem, enabling:
@@ -369,21 +382,6 @@ build_flags =
 ```
 
 ## Common Patterns
-
-### Module Registration Pattern
-
-```cpp
-class MyModule : public IWebModule {
-    void onModuleRegistered(const String& basePath, IWebPlatform* platform) override {
-        platform_ = platform;
-        basePath_ = basePath;
-        
-        if (platform_->isHttpsEnabled()) {
-            // HTTPS-specific setup
-        }
-    }
-};
-```
 
 ### Authentication Check Pattern
 

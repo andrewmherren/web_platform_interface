@@ -1,8 +1,9 @@
 #ifndef WEB_RESPONSE_H
 #define WEB_RESPONSE_H
 
-#include <Arduino.h>
+#include "string_compat.h"
 #include <ArduinoJson.h>
+#include <interface/core/web_response_core.h>
 #include <interface/webserver_typedefs.h>
 #include <map>
 
@@ -16,23 +17,18 @@ typedef int esp_err_t;
  * for sending responses across Arduino WebServer and ESP-IDF HTTP
  * server implementations without modules needing to know about
  * WebPlatform internals.
+ *
+ * This class wraps WebResponseCore (pure C++) and provides Arduino
+ * String-based APIs for backward compatibility. The core handles
+ * platform-agnostic logic that can be tested in native environments.
  */
 class WebResponse {
 private:
-  int statusCode;
-  String content;
-  String mimeType;
-  std::map<String, String> headers;
-  bool headersSent;
-  bool responseSent;
-  const char *progmemData;
-  bool isProgmemContent;
-  const JsonDocument *jsonDoc;
+  WebResponseCore core; // Pure C++ core for platform-agnostic logic
+
+  // Arduino-specific state (not in core)
+  const JsonDocument *jsonDoc; // External JSON document (non-owning)
   bool isJsonContent;
-  String storageCollection;
-  String storageKey;
-  String storageDriverName;
-  bool isStorageStreamContent;
 
 public:
   WebResponse();
@@ -48,8 +44,8 @@ public:
   void setHeader(const String &name, const String &value);
   void redirect(const String &url, int code = 302);
 
-  bool hasProgmemContent() const { return isProgmemContent; }
-  const char *getProgmemData() const { return progmemData; }
+  bool hasProgmemContent() const { return core.hasProgmemContent(); }
+  const char *getProgmemData() const { return core.getProgmemData(); }
 
   // Send response (called internally by WebPlatform)
   void sendTo(WebServerClass *server);
@@ -57,18 +53,21 @@ public:
   esp_err_t sendTo(httpd_req *req);
 
   // Status queries
-  // bool isHeadersSent() const { return headersSent; }
-  bool isResponseSent() const { return responseSent; }
-  // int getStatus() const { return statusCode; }
+  bool isResponseSent() const { return core.isResponseSent(); }
+  int getStatus() const { return core.getStatus(); }
   String getContent() const;
-  String getMimeType() const { return mimeType; }
+  String getMimeType() const { return String(core.getMimeType().c_str()); }
 
   // Header access
   String getHeader(const String &name) const;
 
+  // Core access for advanced usage and testing
+  const WebResponseCore &getCore() const { return core; }
+  WebResponseCore &getCore() { return core; }
+
 private:
-  void markHeadersSent() { headersSent = true; }
-  void markResponseSent() { responseSent = true; }
+  void markHeadersSent() { core.markHeadersSent(); }
+  void markResponseSent() { core.markResponseSent(); }
 
   // Helper methods for PROGMEM streaming
   void sendProgmemChunked(const char *data, WebServerClass *server);
@@ -83,9 +82,6 @@ private:
                          WebServerClass *server, const String &driverName = "");
   esp_err_t streamFromStorage(const String &collection, const String &key,
                               httpd_req *req, const String &driverName = "");
-
-  // Allow WebPlatform to call private methods
-  friend class WebPlatform;
 };
 
 #endif // WEB_RESPONSE_H
