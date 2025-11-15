@@ -93,6 +93,19 @@ public:
   createJsonArrayResponse(WebResponse &res,
                           std::function<void(JsonArray &)> builder) = 0;
 #endif
+
+  // Time synchronization (UTC only)
+  /**
+   * @brief Get current Unix timestamp (UTC)
+   * @return Unix timestamp (seconds since epoch), or 0 if time not synchronized
+   */
+  virtual unsigned long getCurrentTime() const = 0;
+
+  /**
+   * @brief Check if system time has been synchronized via NTP
+   * @return true if time is synchronized and reliable
+   */
+  virtual bool isTimeSynchronized() const = 0;
 };
 
 /**

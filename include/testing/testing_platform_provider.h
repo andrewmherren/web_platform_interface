@@ -185,6 +185,18 @@ public:
   void onDebug(std::function<void(const String &)> callback) {
     debugCallback = callback;
   }
+
+  // Time synchronization methods
+  unsigned long getCurrentTime() const override {
+    // Mock implementation - return a fixed test timestamp (Jan 1, 2024 00:00:00
+    // UTC)
+    return 1704067200; // 2024-01-01 00:00:00 UTC
+  }
+
+  bool isTimeSynchronized() const override {
+    // Mock implementation - always synchronized in tests
+    return true;
+  }
 };
 
 /**
