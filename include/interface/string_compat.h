@@ -1,73 +1,93 @@
-#ifndef STRING_COMPAT_H
-#define STRING_COMPAT_H
+// Cross-platform String compatibility layer
+#ifndef WEB_PLATFORM_INTERFACE_STRING_COMPAT_H
+#define WEB_PLATFORM_INTERFACE_STRING_COMPAT_H
 
-// This file provides compatibility between Arduino String and std::string
-// for native testing with ArduinoJson, and unified API for interface files
-// Works in both Arduino and native test environments
-
-#ifdef NATIVE_PLATFORM
-#include <ArduinoFake.h>
-#else
+#if defined(ARDUINO) || defined(ESP_PLATFORM)
+// Real Arduino environment
 #include <Arduino.h>
-#endif
+#elif defined(NATIVE_PLATFORM)
+// Native test environment with ArduinoFake
+// ArduinoFake provides its own String class, so just include it
+#include <Arduino.h>
+#else
+// Pure native build without Arduino at all - provide Arduino String
+// compatibility
+#include <algorithm>
+#include <cstring>
 #include <string>
 
-// ArduinoJson includes for JSON serialization functions
-#ifdef NATIVE_PLATFORM
-#include <ArduinoJson.h>
-#else
-#include <ArduinoJson.h>
+
+class String : public std::string {
+public:
+  // Inherit constructors
+  using std::string::string;
+  String() : std::string() {}
+  String(const char *cstr) : std::string(cstr ? cstr : "") {}
+  String(const std::string &str) : std::string(str) {}
+
+  // Arduino String compatibility methods
+  bool startsWith(const String &prefix) const {
+    return this->size() >= prefix.size() &&
+           this->substr(0, prefix.size()) == prefix;
+  }
+
+  bool endsWith(const String &suffix) const {
+    return this->size() >= suffix.size() &&
+           this->substr(this->size() - suffix.size()) == suffix;
+  }
+
+  String substring(int beginIndex) const {
+    if (beginIndex < 0)
+      beginIndex = 0;
+    if (beginIndex >= (int)this->size())
+      return String();
+    return String(this->substr(beginIndex));
+  }
+
+  String substring(int beginIndex, int endIndex) const {
+    if (beginIndex < 0)
+      beginIndex = 0;
+    if (endIndex > (int)this->size())
+      endIndex = this->size();
+    if (beginIndex >= endIndex)
+      return String();
+    return String(this->substr(beginIndex, endIndex - beginIndex));
+  }
+
+  int indexOf(const String &str) const {
+    auto pos = this->find(str);
+    return pos == std::string::npos ? -1 : (int)pos;
+  }
+
+  int indexOf(char c) const {
+    auto pos = this->find(c);
+    return pos == std::string::npos ? -1 : (int)pos;
+  }
+
+  void toLowerCase() {
+    std::transform(this->begin(), this->end(), this->begin(), ::tolower);
+  }
+
+  void toUpperCase() {
+    std::transform(this->begin(), this->end(), this->begin(), ::toupper);
+  }
+
+  int toInt() const {
+    try {
+      return std::stoi(*this);
+    } catch (...) {
+      return 0;
+    }
+  }
+
+  float toFloat() const {
+    try {
+      return std::stof(*this);
+    } catch (...) {
+      return 0.0f;
+    }
+  }
+};
 #endif
 
-// For native tests, convert between String and std::string
-inline std::string toStdString(const String &arduinoString) {
-  return std::string(arduinoString.c_str());
-}
-
-inline String toArduinoString(const std::string &stdString) {
-  return String(stdString.c_str());
-}
-
-// String compatibility utilities - works in both Arduino and native
-// environments
-namespace StringUtils {
-
-// Check if a String is empty - compatible with both Arduino and native
-// environments Named differently to avoid macro conflicts
-inline bool isStringEmpty(const String &str) {
-#ifdef NATIVE_PLATFORM
-  // ArduinoFake String doesn't have isEmpty()
-  return str.length() == 0;
-#else
-  // Real Arduino String has isEmpty()
-  return str.isEmpty();
-#endif
-}
-
-} // namespace StringUtils
-
-#ifdef NATIVE_PLATFORM
-// Add missing String methods for native environment
-inline bool isStringEmpty(const String &str) { return str.length() == 0; }
-
-// Extension method for compatibility with Arduino String
-namespace arduino_compat {
-inline bool isStringEmpty(const String &str) { return str.length() == 0; }
-} // namespace arduino_compat
-#endif
-
-// Use std::string for serialization in native tests
-namespace StringCompat {
-inline std::string serializeJsonToStdString(const JsonDocument &doc) {
-  std::string result;
-  serializeJson(doc, result);
-  return result;
-}
-
-inline DeserializationError
-deserializeJsonFromStdString(JsonDocument &doc, const std::string &input) {
-  return deserializeJson(doc, input);
-}
-} // namespace StringCompat
-
-#endif // STRING_COMPAT_H
+#endif // WEB_PLATFORM_INTERFACE_STRING_COMPAT_H

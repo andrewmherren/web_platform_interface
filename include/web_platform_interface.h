@@ -4,7 +4,7 @@
 // Main include file for web_platform_interface library
 // This provides all the core interfaces needed by modules
 
-#include <Arduino.h>
+#include "interface/string_compat.h"
 #include <ArduinoJson.h>
 #include <functional>
 #include <interface/auth_types.h>
@@ -18,13 +18,17 @@
 #include <interface/web_response.h>
 #include <vector>
 
-// Testing utilities (only include in test builds)
-#ifdef UNITY_INCLUDE_CONFIG_H
-#include <testing/test_utilities.h>
-#endif
-
 // Forward declarations
 class IWebModule;
+
+// Conditional handler type for platform interface methods
+#if defined(ARDUINO) || defined(ESP_PLATFORM)
+// Arduino builds use wrapper-based handler
+using PlatformRouteHandler = WebModule::UnifiedRouteHandler;
+#else
+// Native builds use core-based handler
+using PlatformRouteHandler = WebModuleCore::UnifiedRouteHandler;
+#endif
 
 /**
  * Abstract interface for web platform implementations.
@@ -50,12 +54,12 @@ public:
 
   // Route registration - unified API
   virtual void
-  registerWebRoute(const String &path, WebModule::UnifiedRouteHandler handler,
+  registerWebRoute(const String &path, PlatformRouteHandler handler,
                    const AuthRequirements &auth = {AuthType::NONE},
                    WebModule::Method method = WebModule::WM_GET) = 0;
 
   virtual void registerApiRoute(
-      const String &path, WebModule::UnifiedRouteHandler handler,
+      const String &path, PlatformRouteHandler handler,
       const AuthRequirements &auth = {AuthType::NONE},
       WebModule::Method method = WebModule::WM_GET,
       const OpenAPIDocumentation &docs = OpenAPIDocumentation()) = 0;
@@ -71,7 +75,16 @@ public:
   virtual void addGlobalRedirect(const String &fromPath,
                                  const String &toPath) = 0;
 
-  // JSON response utilities
+  // JSON response utilities - conditional signatures for native vs Arduino
+#if defined(NATIVE_PLATFORM)
+  virtual void
+  createJsonResponse(WebResponseCore &res,
+                     std::function<void(JsonObject &)> builder) = 0;
+
+  virtual void
+  createJsonArrayResponse(WebResponseCore &res,
+                          std::function<void(JsonArray &)> builder) = 0;
+#else
   virtual void
   createJsonResponse(WebResponse &res,
                      std::function<void(JsonObject &)> builder) = 0;
@@ -79,6 +92,20 @@ public:
   virtual void
   createJsonArrayResponse(WebResponse &res,
                           std::function<void(JsonArray &)> builder) = 0;
+#endif
+
+  // Time synchronization (UTC only)
+  /**
+   * @brief Get current Unix timestamp (UTC)
+   * @return Unix timestamp (seconds since epoch), or 0 if time not synchronized
+   */
+  virtual unsigned long getCurrentTime() const = 0;
+
+  /**
+   * @brief Check if system time has been synchronized via NTP
+   * @return true if time is synchronized and reliable
+   */
+  virtual bool isTimeSynchronized() const = 0;
 };
 
 /**
@@ -91,15 +118,34 @@ public:
   virtual IWebPlatform &getPlatform() = 0;
 
   // Static instance for global access
-  static IWebPlatformProvider *instance;
+  /**
+   * @brief Static instance pointer to the web platform provider implementation.
+   *
+   * This inline static member variable holds a pointer to the current web
+   * platform provider instance. The inline static initialization is a C++17
+   * feature that replaces the traditional external definition pattern.
+   *
+   * @note Requires C++17 or later. This is a breaking change from previous
+   * versions that used external definition. Ensure all consuming projects are
+   * compiled with -std=c++17 or -std=gnu++17 flags.
+   *
+   * @warning Projects using C++14 or earlier will fail to compile with this
+   * change.
+   *
+   * @see IWebPlatformProvider for the interface definition
+   */
+  inline static IWebPlatformProvider *instance = nullptr;
   static IWebPlatform &getPlatformInstance() {
     if (!instance) {
-      // This should never happen in production - platform must be set
-      // Use runtime error instead of static_assert for better testing
-      // compatibility
+#if defined(ARDUINO) || defined(ESP_PLATFORM)
+      // In embedded targets, print and halt
       Serial.println("FATAL: WebPlatform provider not initialized");
-      while (1)
-        ; // Halt execution
+      while (1) {
+      }
+#else
+      // In native builds, throw for test visibility
+      throw std::runtime_error("WebPlatform provider not initialized");
+#endif
     }
     return instance->getPlatform();
   }

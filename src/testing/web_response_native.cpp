@@ -3,66 +3,65 @@
 
 #include <interface/web_response.h>
 
-WebResponse::WebResponse() : statusCode(200), headersSent(false), responseSent(false), 
-                             progmemData(nullptr), isProgmemContent(false), 
-                             jsonDoc(nullptr), isJsonContent(false), 
-                             isStorageStreamContent(false) {
-}
+WebResponse::WebResponse() : core(), jsonDoc(nullptr), isJsonContent(false) {}
 
-void WebResponse::setStatus(int code) {
-    statusCode = code;
-}
+void WebResponse::setStatus(int code) { core.setStatus(code); }
 
 void WebResponse::setContent(const String &content, const String &mimeType) {
-    this->content = content;
-    this->mimeType = mimeType;
-    isProgmemContent = false;
-    isJsonContent = false;
-    isStorageStreamContent = false;
+  core.setContent(content.c_str(), mimeType.c_str());
+  isJsonContent = false;
 }
 
-void WebResponse::setProgmemContent(const char *progmemData, const String &mimeType) {
-    this->progmemData = progmemData;
-    this->mimeType = mimeType;
-    isProgmemContent = true;
-    isJsonContent = false;
-    isStorageStreamContent = false;
+void WebResponse::setProgmemContent(const char *progmemData,
+                                    const String &mimeType) {
+  core.setProgmemContent(progmemData, mimeType.c_str());
+  isJsonContent = false;
 }
 
 void WebResponse::setHeader(const String &name, const String &value) {
-    headers[name] = value;
+  core.setHeader(name.c_str(), value.c_str());
 }
 
 void WebResponse::redirect(const String &url, int code) {
-    setStatus(code);
-    setHeader("Location", url);
+  core.setRedirect(url.c_str(), code);
 }
 
 String WebResponse::getContent() const {
-    if (isProgmemContent && progmemData) {
-        return String(progmemData);  // In native testing, just convert to String
-    }
-    return content;
+  if (core.hasProgmemContent() && core.getProgmemData()) {
+    return String(
+        core.getProgmemData()); // In native testing, just convert to String
+  }
+  return String(core.getContent().c_str());
 }
 
 String WebResponse::getHeader(const String &name) const {
-    auto it = headers.find(name);
-    return (it != headers.end()) ? it->second : String("");
+  std::string value = core.getHeader(name.c_str());
+  return String(value.c_str());
 }
 
 // Stub implementations for methods that don't apply to native testing
 void WebResponse::setJsonContent(const JsonDocument &doc) {
-    // For native testing, we could serialize to string if needed
+  jsonDoc = &doc;
+  isJsonContent = true;
+  core.setJsonContent("application/json");
+  core.setStatus(200);
+  core.setHeader("Content-Type", "application/json");
 }
 
-void WebResponse::setStorageStreamContent(const String &collection, const String &key,
-                                         const String &mimeType, const String &driverName) {
-    // Stub for native testing
+void WebResponse::setStorageStreamContent(const String &collection,
+                                          const String &key,
+                                          const String &mimeType,
+                                          const String &driverName) {
+  std::string driver =
+      (driverName.length() == 0) ? "littlefs" : std::string(driverName.c_str());
+  core.setStorageStreamContent(collection.c_str(), key.c_str(),
+                               mimeType.c_str(), driver);
+  isJsonContent = false;
 }
 
 void WebResponse::sendTo(WebServerClass *server) {
-    // Stub for native testing - WebServerClass doesn't exist in native
-    responseSent = true;
+  // Stub for native testing - WebServerClass doesn't exist in native
+  core.markResponseSent();
 }
 
 #endif // NATIVE_PLATFORM

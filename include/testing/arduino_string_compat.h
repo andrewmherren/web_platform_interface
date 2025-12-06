@@ -8,11 +8,9 @@
 class String;
 
 namespace ArduinoStringCompat {
-    // Helper method to check if a String is empty in native environment
-    inline bool isEmpty(const String& str) {
-        return str.length() == 0;
-    }
-}
+// Helper method to check if a String is empty in native environment
+inline bool isEmpty(const String &str) { return str.length() == 0; }
+} // namespace ArduinoStringCompat
 
 // Patch the String class with isEmpty() method
 #define isEmpty() ArduinoStringCompat::isEmpty(*this)

@@ -2,6 +2,8 @@
 // Native testing implementation of RouteVariant
 
 #include <cstring>
+#include <interface/core/web_request_core.h>
+#include <interface/core/web_response_core.h>
 #include <interface/utils/route_variant.h>
 #include <interface/web_module_interface.h>
 
@@ -53,7 +55,7 @@ const WebRoute &RouteVariant::getWebRoute() const {
   if (type != WEB_ROUTE) {
     // For native testing, we need a way to handle this error
     // In a real implementation this would throw an exception
-    static auto dummyHandler = [](WebRequest &, WebResponse &) {};
+    static auto dummyHandler = [](WebRequestCore &, WebResponseCore &) {};
     static WebRoute dummy("", WebModule::WM_GET, dummyHandler,
                           AuthRequirements{});
     return dummy;
@@ -64,7 +66,7 @@ const WebRoute &RouteVariant::getWebRoute() const {
 const ApiRoute &RouteVariant::getApiRoute() const {
   if (type != API_ROUTE) {
     // For native testing, we need a way to handle this error
-    static auto dummyHandler = [](WebRequest &, WebResponse &) {};
+    static auto dummyHandler = [](WebRequestCore &, WebResponseCore &) {};
     static ApiRoute dummy("", WebModule::WM_GET, dummyHandler,
                           AuthRequirements{}, OpenAPIDocumentation());
     return dummy;

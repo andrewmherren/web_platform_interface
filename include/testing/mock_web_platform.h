@@ -9,14 +9,15 @@
     "NATIVE_PLATFORM must be defined by the build system for native testing. Check your platformio.ini configuration."
 #endif
 
-#include "arduino_string_compat.h"
 #include <ArduinoFake.h>
 #include <ArduinoJson.h>
 #include <functional>
 #include <map>
 #include <sstream>
 #include <string>
+#include <testing/arduino_string_compat.h>
 #include <vector>
+
 
 // Use interfaces instead of mocks
 #include <interface/auth_types.h>
@@ -27,9 +28,6 @@
 #include <interface/web_module_types.h>
 #include <interface/web_request.h>
 #include <interface/web_response.h>
-
-// Include string compatibility helpers
-#include "interface/string_compat.h"
 
 // Enhanced JsonResponseBuilder with native testing compatibility
 class JsonResponseBuilder {
@@ -45,10 +43,11 @@ public:
     builder(root);
 
     // Use std::string for native compatibility with ArduinoJson
-    std::string jsonString = StringCompat::serializeJsonToStdString(doc);
+    std::string jsonString;
+    serializeJson(doc, jsonString);
 
     // Convert to Arduino String for WebResponse
-    String arduinoString = toArduinoString(jsonString);
+    String arduinoString = String(jsonString.c_str());
     res.setContent(arduinoString, "application/json");
   }
 };

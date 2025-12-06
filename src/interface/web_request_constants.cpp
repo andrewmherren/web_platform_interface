@@ -20,6 +20,3 @@ const char *COMMON_HTTP_HEADERS[] = {"Host",
                                      "Pragma"};
 const size_t COMMON_HTTP_HEADERS_COUNT =
     sizeof(COMMON_HTTP_HEADERS) / sizeof(COMMON_HTTP_HEADERS[0]);
-
-// Definition of the static IWebPlatformProvider instance
-IWebPlatformProvider *IWebPlatformProvider::instance = nullptr;
