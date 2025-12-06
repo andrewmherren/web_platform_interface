@@ -439,3 +439,4 @@ This library is part of the WebPlatform ecosystem and is released under the MIT 
 - **[maker_api](https://github.com/andrewmherren/maker_api)**: Interactive API explorer module
 - **[usb_pd_controller](https://github.com/andrewmherren/usb_pd_controller)**: USB-C Power Delivery control module
 - **[ota_update](https://github.com/andrewmherren/ota_update)**: Over-the-air firmware update module
+- **[Web Module Example](https://github.com/andrewmherren/web_module_example)**: Boilerplate template for creating custom WebPlatform modules
