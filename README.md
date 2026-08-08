@@ -63,7 +63,7 @@ Implement the IWebModule interface:
 
 class MyModule : public IWebModule {
 public:
-    std::vector<RouteVariant> getWebRoutes() override {
+    std::vector<RouteVariant> getHttpRoutes() override {
         return {
             WebRoute("/my-endpoint", WebModule::WM_GET, 
                     [this](WebRequest& req, WebResponse& res) {
@@ -71,7 +71,11 @@ public:
                     })
         };
     }
-    
+
+    std::vector<RouteVariant> getHttpsRoutes() override {
+        return getHttpRoutes(); // Same routes for HTTP and HTTPS
+    }
+
     void handleMyEndpoint(WebRequest& req, WebResponse& res) {
         res.setContent("Hello from my module!", "text/plain");
     }
@@ -126,11 +130,22 @@ The core interface that all WebPlatform modules must implement:
 class IWebModule {
 public:
     virtual ~IWebModule() = default;
-    virtual std::vector<RouteVariant> getWebRoutes() = 0;
-    virtual std::vector<RouteVariant> getApiRoutes() = 0;
-    virtual void onModuleRegistered(const String& basePath, IWebPlatform* platform) {}
-    virtual String getModuleName() const { return "Unknown"; }
-    virtual String getModuleVersion() const { return "0.0.0"; }
+
+    // Required methods - pure virtual to enforce implementation
+    virtual std::vector<RouteVariant> getHttpRoutes() = 0;
+    virtual std::vector<RouteVariant> getHttpsRoutes() = 0;
+    virtual String getModuleName() const = 0;
+
+    // Optional implementations with defaults
+    virtual String getModuleVersion() const { return "1.0.0"; }
+    virtual String getModuleDescription() const { return "Web-enabled module"; }
+
+    // Module lifecycle methods
+    virtual void begin() {}
+    virtual void handle() {} // Called each loop iteration when in CONNECTED mode
+
+    // Convenience method for modules with identical HTTP/HTTPS routes
+    virtual std::vector<RouteVariant> getWebRoutes() { return getHttpRoutes(); }
 };
 ```
 

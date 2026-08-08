@@ -43,14 +43,6 @@ struct WebRoute {
   String description; // Optional: Human-readable description
   AuthRequirements authRequirements; // Authentication requirements for route
 
-  // Helper method to convert to core representation
-  WebRouteCore toCore() const {
-    return WebRouteCore(path.c_str(),
-                        static_cast<WebModuleCore::Method>(method),
-                        nullptr, // Handler conversion handled separately
-                        contentType.c_str(), description.c_str());
-  }
-
 private:
   // Helper function to check for API path usage warning
   static void checkApiPathWarning(const String &p) {
