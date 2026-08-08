@@ -102,7 +102,7 @@ public:
                           std::function<void(JsonObject &)> builder) override {
     // Create a document and call the builder
     // Match the real implementation's default size (SMALL_JSON_SIZE = 1024)
-    StaticJsonDocument<1024> doc;
+    JsonDocument doc;
     JsonObject root = doc.to<JsonObject>();
     builder(root);
 
@@ -119,7 +119,7 @@ public:
                           std::function<void(JsonArray &)> builder) override {
     // Create a document and call the builder
     // Match the real implementation's default size (SMALL_JSON_SIZE = 1024)
-    StaticJsonDocument<1024> doc;
+    JsonDocument doc;
     JsonArray root = doc.to<JsonArray>();
     builder(root);
 
@@ -136,7 +136,7 @@ public:
                           std::function<void(JsonObject &)> builder) override {
     // Create a document and call the builder
     // Match the real implementation's default size (SMALL_JSON_SIZE = 1024)
-    StaticJsonDocument<1024> doc;
+    JsonDocument doc;
     JsonObject root = doc.to<JsonObject>();
     builder(root);
 
@@ -153,7 +153,7 @@ public:
                           std::function<void(JsonArray &)> builder) override {
     // Create a document and call the builder
     // Match the real implementation's default size (SMALL_JSON_SIZE = 1024)
-    StaticJsonDocument<1024> doc;
+    JsonDocument doc;
     JsonArray root = doc.to<JsonArray>();
     builder(root);
 

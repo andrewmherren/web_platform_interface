@@ -261,9 +261,9 @@ void test_testing_platform_provider_json_edge_cases() {
   // 121, 124)
   TestResponse response4;
   platform.createJsonArrayResponse(response4, [](JsonArray &arr) {
-    JsonObject obj1 = arr.createNestedObject();
+    JsonObject obj1 = arr.add<JsonObject>();
     obj1["name"] = "item1";
-    JsonObject obj2 = arr.createNestedObject();
+    JsonObject obj2 = arr.add<JsonObject>();
     obj2["name"] = "item2";
   });
   TEST_ASSERT_TRUE(response4.getContent().find("item1") != std::string::npos);
@@ -519,7 +519,7 @@ void test_mock_web_platform_string_conversion() {
   platform.createJsonArrayResponse(response2, [](JsonArray &arr) {
     arr.add("special: \"quoted\" text");
     arr.add("path\\with\\backslashes");
-    JsonObject obj = arr.createNestedObject();
+    JsonObject obj = arr.add<JsonObject>();
     obj["key"] = "value with spaces and symbols: !@#$%";
   });
 
@@ -541,10 +541,10 @@ void test_mock_web_platform_json_serialization_coverage() {
     obj["number_field"] = 123;
     obj["boolean_field"] = false;
     obj["null_field"] = nullptr;
-    JsonArray arr = obj.createNestedArray("array_field");
+    JsonArray arr = obj["array_field"].to<JsonArray>();
     arr.add("item");
     arr.add(999);
-    JsonObject nested = obj.createNestedObject("nested_field");
+    JsonObject nested = obj["nested_field"].to<JsonObject>();
     nested["inner"] = "value";
     nested["inner_bool"] = true;
   });
@@ -568,18 +568,18 @@ void test_mock_web_platform_json_serialization_coverage() {
     arr.add(nullptr);
 
     // Add nested objects
-    JsonObject obj1 = arr.createNestedObject();
+    JsonObject obj1 = arr.add<JsonObject>();
     obj1["id"] = 1;
     obj1["name"] = "first";
     obj1["active"] = true;
 
-    JsonObject obj2 = arr.createNestedObject();
+    JsonObject obj2 = arr.add<JsonObject>();
     obj2["id"] = 2;
     obj2["name"] = "second";
     obj2["active"] = false;
 
     // Add nested array
-    JsonArray nestedArr = arr.createNestedArray();
+    JsonArray nestedArr = arr.add<JsonArray>();
     nestedArr.add("nested_item1");
     nestedArr.add("nested_item2");
   });

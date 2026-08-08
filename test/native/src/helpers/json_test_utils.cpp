@@ -16,7 +16,7 @@ void test_string_empty_check() {
 
 void test_serialize_json_to_std_string() {
   // Test serializing JSON to std::string
-  StaticJsonDocument<200> doc;
+  JsonDocument doc;
   doc["key"] = "value";
   doc["number"] = 42;
 
@@ -31,7 +31,7 @@ void test_deserialize_json_from_std_string() {
   // Test deserializing JSON from std::string
   std::string jsonStr = "{\"key\":\"value\",\"number\":42}";
 
-  StaticJsonDocument<200> doc;
+  JsonDocument doc;
   DeserializationError error =
       JsonTestUtils::deserializeFromStdString(doc, jsonStr);
 

@@ -18,7 +18,7 @@ void test_create_json_response() {
   mockPlatform.createJsonResponse(response, [](JsonObject &root) {
     root["key1"] = "value1";
     root["key2"] = 42;
-    JsonObject nested = root.createNestedObject("nested");
+    JsonObject nested = root["nested"].to<JsonObject>();
     nested["nestedKey"] = "nestedValue";
   });
 
@@ -28,7 +28,7 @@ void test_create_json_response() {
   TEST_ASSERT_EQUAL_STRING("application/json", response.getMimeType().c_str());
 
   // Parse the JSON to validate its structure
-  StaticJsonDocument<512> doc;
+  JsonDocument doc;
   DeserializationError error = deserializeJson(doc, content);
   TEST_ASSERT_FALSE(error);
 
@@ -52,7 +52,7 @@ void test_create_json_array_response() {
     array.add("item1");
     array.add(42);
 
-    JsonObject obj = array.createNestedObject();
+    JsonObject obj = array.add<JsonObject>();
     obj["objKey"] = "objValue";
   });
 
@@ -62,7 +62,7 @@ void test_create_json_array_response() {
   TEST_ASSERT_EQUAL_STRING("application/json", response.getMimeType().c_str());
 
   // Parse the JSON to validate its structure
-  StaticJsonDocument<512> doc;
+  JsonDocument doc;
   DeserializationError error = deserializeJson(doc, content);
   TEST_ASSERT_FALSE(error);
 
@@ -123,11 +123,11 @@ void test_create_complex_json_responses() {
       obj["number"] = 123;
       obj["boolean"] = true;
 
-      JsonArray arr = obj.createNestedArray("array");
+      JsonArray arr = obj["array"].to<JsonArray>();
       arr.add(1);
       arr.add(2);
 
-      JsonObject nested = obj.createNestedObject("object");
+      JsonObject nested = obj["object"].to<JsonObject>();
       nested["nestedKey"] = "nestedValue";
     });
 
@@ -135,7 +135,7 @@ void test_create_complex_json_responses() {
     TEST_ASSERT_FALSE(content.empty());
 
     // Verify complex JSON structure
-    StaticJsonDocument<512> doc;
+    JsonDocument doc;
     deserializeJson(doc, content);
 
     TEST_ASSERT_EQUAL_STRING("text", doc["string"].as<const char *>());
@@ -155,10 +155,10 @@ void test_create_complex_json_responses() {
       arr.add("string");
       arr.add(456);
 
-      JsonObject obj1 = arr.createNestedObject();
+      JsonObject obj1 = arr.add<JsonObject>();
       obj1["name"] = "object1";
 
-      JsonArray nestedArr = arr.createNestedArray();
+      JsonArray nestedArr = arr.add<JsonArray>();
       nestedArr.add(true);
       nestedArr.add("nested");
     });
@@ -167,7 +167,7 @@ void test_create_complex_json_responses() {
     TEST_ASSERT_FALSE(content.empty());
 
     // Verify complex JSON array structure
-    StaticJsonDocument<512> doc;
+    JsonDocument doc;
     deserializeJson(doc, content);
 
     TEST_ASSERT_EQUAL_STRING("string", doc[0].as<const char *>());
