@@ -1,6 +1,6 @@
 {
   "name": "web_platform_interface",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Shared interface and testing mocks for Web Platform modules",
   "build": {
     "includeDir": "include"

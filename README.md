@@ -53,7 +53,7 @@ Add the interface library as a dependency:
 # platformio.ini
 [env:esp32]
 lib_deps = 
-    andrewmherren/web_platform_interface@^0.2.0
+    andrewmherren/web_platform_interface@^0.3.0
 ```
 
 Implement the IWebModule interface:
@@ -329,7 +329,7 @@ build_flags =
     -DNATIVE_PLATFORM=1
     -DUNITY_INCLUDE_CONFIG_H
 lib_deps = 
-    andrewmherren/web_platform_interface@^0.2.0
+    andrewmherren/web_platform_interface@^0.3.0
     fabiobatsilvestri/ArduinoFake@^0.4.0
 test_framework = unity
 
@@ -338,7 +338,7 @@ platform = espressif32
 board = esp32dev
 framework = arduino
 lib_deps = 
-    andrewmherren/web_platform_interface@^0.2.0
+    andrewmherren/web_platform_interface@^0.3.0
 test_framework = unity
 ```
 
