@@ -173,32 +173,32 @@ void test_web_response_native_set_json_content_branches() {
   WebResponse response;
 
   // Branch 1: Set JSON content with populated document
-  StaticJsonDocument<128> doc;
+  JsonDocument doc;
   doc["key"] = "value";
   response.setJsonContent(doc);
 
   // Branch 2: Set JSON content with different document
-  StaticJsonDocument<128> doc2;
+  JsonDocument doc2;
   doc2["other"] = "data";
   response.setJsonContent(doc2);
 
   // Branch 3: Empty JSON document
-  StaticJsonDocument<64> emptyDoc;
+  JsonDocument emptyDoc;
   response.setJsonContent(emptyDoc);
 
   // Branch 4: JSON with array
-  StaticJsonDocument<128> arrDoc;
+  JsonDocument arrDoc;
   arrDoc.add("item1");
   arrDoc.add("item2");
   response.setJsonContent(arrDoc);
 
   // Branch 5: JSON with nested object
-  StaticJsonDocument<256> nestedDoc;
+  JsonDocument nestedDoc;
   nestedDoc["outer"]["inner"] = "value";
   response.setJsonContent(nestedDoc);
 
   // Branch 6: Overwrite existing JSON
-  StaticJsonDocument<128> finalDoc;
+  JsonDocument finalDoc;
   finalDoc["final"] = "data";
   response.setJsonContent(finalDoc);
 }

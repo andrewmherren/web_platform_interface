@@ -204,10 +204,10 @@ void test_mock_web_platform_json() {
 
   // Test JSON array creation
   platform.createJsonArrayResponse(response, [](JsonArray &arr) {
-    JsonObject obj1 = arr.createNestedObject();
+    JsonObject obj1 = arr.add<JsonObject>();
     obj1["name"] = "Item 1";
 
-    JsonObject obj2 = arr.createNestedObject();
+    JsonObject obj2 = arr.add<JsonObject>();
     obj2["name"] = "Item 2";
   });
 
@@ -285,9 +285,9 @@ void test_mock_web_platform_json_edge_cases() {
   // Test deeply nested structure (tests serialization)
   TestResponse nestedResponse;
   platform.createJsonResponse(nestedResponse, [](JsonObject &obj) {
-    JsonObject level1 = obj.createNestedObject("level1");
-    JsonObject level2 = level1.createNestedObject("level2");
-    JsonObject level3 = level2.createNestedObject("level3");
+    JsonObject level1 = obj["level1"].to<JsonObject>();
+    JsonObject level2 = level1["level2"].to<JsonObject>();
+    JsonObject level3 = level2["level3"].to<JsonObject>();
     level3["deep"] = "value";
   });
   TEST_ASSERT_TRUE(nestedResponse.getContent().find("deep") !=

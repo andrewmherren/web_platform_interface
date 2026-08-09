@@ -72,7 +72,7 @@ void WebRequestCore::parseJsonData(const std::string &jsonData) {
 
 #ifdef ARDUINO
   // Use ArduinoJson for Arduino builds
-  DynamicJsonDocument doc(1024);
+  JsonDocument doc;
   DeserializationError error = deserializeJson(doc, jsonData.c_str());
 
   if (error) {

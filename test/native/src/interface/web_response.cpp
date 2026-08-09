@@ -149,7 +149,7 @@ void test_web_response_set_json_content() {
   WebResponse response;
 
   // Create a JSON document for testing
-  DynamicJsonDocument doc(256);
+  JsonDocument doc;
   doc["success"] = true;
   doc["message"] = "Test message";
   doc["count"] = 42;

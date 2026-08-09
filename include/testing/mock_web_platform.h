@@ -32,12 +32,15 @@
 // Enhanced JsonResponseBuilder with native testing compatibility
 class JsonResponseBuilder {
 public:
+  // Size is now unused (ArduinoJson v7's JsonDocument sizes itself
+  // dynamically) but kept as a template parameter for source compatibility
+  // with existing call sites like createResponse<256>(...).
   template <size_t Size>
   static void createResponse(WebResponse &res,
                              std::function<void(JsonObject &)> builder) {
     // Create JSON document for testing
-    StaticJsonDocument<Size> doc;
-    JsonObject root = doc.template to<JsonObject>();
+    JsonDocument doc;
+    JsonObject root = doc.to<JsonObject>();
 
     // Call the builder function to populate the JSON
     builder(root);

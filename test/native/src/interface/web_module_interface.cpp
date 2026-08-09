@@ -253,7 +253,7 @@ void test_web_module_lifecycle() {
 
   // Test begin with JsonVariant - tests lines 178-180
   TestWebModuleImpl module2;
-  StaticJsonDocument<64> doc;
+  JsonDocument doc;
   doc["test"] = true;
   module2.begin(doc.as<JsonVariant>());
   TEST_ASSERT_TRUE(
@@ -270,7 +270,7 @@ void test_web_module_with_config() {
   TestWebModuleImpl module;
 
   // Create config JSON
-  StaticJsonDocument<256> configDoc;
+  JsonDocument configDoc;
   configDoc["enabled"] = true;
   configDoc["interval"] = 1000;
   configDoc["name"] = "Config Test";

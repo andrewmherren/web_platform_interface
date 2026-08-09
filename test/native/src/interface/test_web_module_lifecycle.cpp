@@ -50,7 +50,7 @@ void test_web_module_default_begin_with_config() {
   TestModuleWithDefaults module;
 
   // Create a simple JSON config
-  StaticJsonDocument<128> doc;
+  JsonDocument doc;
   JsonVariant config = doc.to<JsonVariant>();
 
   // Default begin(config) should call parameterless begin()
